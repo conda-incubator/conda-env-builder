@@ -1,0 +1,21 @@
+sudo: false
+language: scala
+scala:
+  - 2.13.1
+jdk:
+  - openjdk8
+before_script:
+  - travis_retry ./mill --jobs 2 clean
+  - travis_retry ./mill --jobs 2 --disable-ticker -s _.compile
+script:
+  - ./mill --jobs 2 --disable-ticker -s tools.test
+  - ./mill --jobs 2 --disable-ticker -s tools.scoverage.xmlReport
+  - ./mill --jobs 2 --disable-ticker -s tools.scoverage.htmlReport
+  - travis_retry bash <(curl -s https://codecov.io/bash) -c -F tools -f '!*.txt'
+before_cache:
+  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.cache/coursier
+    - $HOME/.cache/mill/download

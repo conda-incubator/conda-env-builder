@@ -1,0 +1,20 @@
+# Jenv specific https://www.jenv.be/
+.java-version
+
+# Operating system specific
+.DS_Store
+
+# JVM boilerplate
+*.class
+*.log
+
+# Mill build tool specific
+jars/
+out/
+
+# IDE (IntelliJ) specific
+.scala_dependencies
+.worksheet
+.idea/
+*.iml
+.idea_modules
