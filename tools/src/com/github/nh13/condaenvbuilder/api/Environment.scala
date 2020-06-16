@@ -3,6 +3,8 @@ package com.github.nh13.condaenvbuilder.api
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder, HCursor, Json}
 
+import scala.collection.mutable.ListBuffer
+
 case class Environment(name: String, steps: Seq[Step], group: String) {
   def withDefaults(defaults: Environment): Environment = withDefaults(defaults.steps:_*)
 
@@ -21,16 +23,18 @@ case class Environment(name: String, steps: Seq[Step], group: String) {
   def inheritFrom(environment: Environment*): Environment = {
     if (environment.isEmpty) this
     else {
-      val (initial, rest) = {
-        if (this.steps.isEmpty) (environment.head.steps, environment.drop(1))
-        else (this.steps, environment)
-      }
-      val updated = initial.map { step =>
-        rest.flatMap(_.steps).foldLeft(step) { case (curStep: Step, parentStep: Step) =>
-          curStep.inheritFrom(step = parentStep)
+      // Go through all steps, starting with an empty list of steps, and trying to inherit from a step one-by-one. If no
+      // steps in the current list of steps can inherit from the given parent, then just add the parent.  This handles
+      // the case where this environment does not contain a step of the inherited type, for example, this environment
+      // lacks Pip steps, but inherits one.
+      val updated: Seq[Step] = (this.steps ++ environment.flatMap(_.steps))
+        .foldLeft(Seq.empty[Step]) { case (steps: Seq[Step], parentStep: Step) =>
+          steps.find { curStep: Step => curStep.canInheritFrom(parentStep) } match {
+            case None                => steps :+ parentStep
+            case Some(curStep: Step) => steps.filterNot(_ == curStep) :+ curStep.inheritFrom(parentStep)
+          }
         }
-      }
-      this.copy(steps=updated)
+      this.copy(steps=updated.toIndexedSeq)
     }
   }
 }

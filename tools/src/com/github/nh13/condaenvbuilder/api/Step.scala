@@ -7,6 +7,9 @@ import io.circe.syntax._
 trait Step {
   /** Returns a new step where this step inherits from one or more other steps. */
   def inheritFrom(step: Step*): Step = this
+
+  /** Returns true if this step can inherit from the other step */
+  def canInheritFrom(step: Step): Boolean = this.getClass == step.getClass
 }
 
 object Step {
