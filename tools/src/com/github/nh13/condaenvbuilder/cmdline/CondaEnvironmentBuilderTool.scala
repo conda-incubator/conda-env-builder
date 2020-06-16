@@ -4,6 +4,11 @@ import com.fulcrumgenomics.commons.util.LazyLogging
 import com.fulcrumgenomics.sopt.cmdline.ValidationException
 import com.github.nh13.condaenvbuilder.cmdline.CondaEnvironmentBuilderMain.FailureException
 
+object CondaEnvironmentBuilderTool {
+  /** True to use `mamba` instead of `conda`, false otherwise. */
+  var UseMamba: Boolean = false
+}
+
 
 /** The trait that all `conda-env-builder` com.github.nh13.condaenvbuilder.tools should extend. */
 trait CondaEnvironmentBuilderTool extends LazyLogging {
@@ -22,6 +27,9 @@ trait CondaEnvironmentBuilderTool extends LazyLogging {
   def invalid(message: String) = throw new ValidationException(message)
 
   /** Generates a validation exception if the test value is false. */
-  def validate(test: Boolean, message: => String) = if (!test) throw new ValidationException(message)
+  def validate(test: Boolean, message: => String): Unit = if (!test) throw new ValidationException(message)
+
+  /** Returns the conda executable to use. */
+  protected def condaExecutable: String = if (CondaEnvironmentBuilderTool.UseMamba) "mamba" else "conda"
 }
 

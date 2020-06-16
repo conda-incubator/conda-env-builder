@@ -8,6 +8,7 @@ import com.fulcrumgenomics.commons.io.Io
 import com.fulcrumgenomics.commons.util.{LazyLogging, Logger}
 import com.github.nh13.condaenvbuilder.CondaEnvironmentBuilderDef.PathToYaml
 import com.github.nh13.condaenvbuilder.api.{CodeStep, CondaStep, Environment, PipStep}
+import com.github.nh13.condaenvbuilder.cmdline.CondaEnvironmentBuilderTool
 
 /** Companion to [[BuildWriter]].  */
 object BuildWriter {
@@ -71,6 +72,8 @@ case class BuildWriter(environment: Environment,
                        condaBuildScript: FilePath,
                        codeBuildScript: FilePath,
                        condaEnvironmentDirectory: Option[DirPath]) extends LazyLogging {
+
+  private lazy val condaExecutable: String = if (CondaEnvironmentBuilderTool.UseMamba) "mamba" else "conda"
 
   /** Returns all the output files that will be written by this writer */
   def allOutputs: Iterable[FilePath] = Seq(environmentYaml, condaBuildScript, codeBuildScript)
@@ -139,7 +142,7 @@ case class BuildWriter(environment: Environment,
     writer.println("# Move to the scripts directory")
     writer.println("pushd $(dirname $0)\n")
     writer.println("# Build the conda environment")
-    writer.write("conda env create --force --verbose --quiet")
+    writer.write(f"$condaExecutable env create --force --verbose --quiet")
     condaEnvironmentDirectory match {
       case Some(pre) => writer.write(f" --prefix ${pre.toAbsolutePath}/${environment.name}")
       case None      => writer.write(f" --name ${environment.name}")
@@ -173,8 +176,8 @@ case class BuildWriter(environment: Environment,
         writer.println(f"# Activate conda environment: ${environment.name}")
         writer.println("set +eu")  // because of unbound variables
         writer.println("PS1=dummy\n")  // for sourcing
-        writer.println(". $(conda info --base)/etc/profile.d/conda.sh")
-        writer.println(f"conda activate ${environment.name}")
+        writer.println(f". $$($condaExecutable info --base | tail -n 1)/etc/profile.d/conda.sh") // tail to ignore mamba header
+        writer.println(f"$condaExecutable activate ${environment.name}")
         writer.println("set -eu") //
         writer.println(f"pushd $${repo_root}\n")
         codeStep.map(_.commands).foreach { command =>

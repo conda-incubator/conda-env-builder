@@ -87,7 +87,7 @@ class Solve
       logger.info(s"Building a temporary conda environment for ${environment.name} to: $condaEnvironmentPrefix")
       run(
         logger=logger,
-        f"conda env create --verbose --quiet --prefix $condaEnvironmentPrefix --file $environmentYaml"
+        f"$condaExecutable env create --verbose --quiet --prefix $condaEnvironmentPrefix --file $environmentYaml"
       )
 
       // Export the environment
@@ -96,7 +96,7 @@ class Solve
       val condaEnvExportArgs: String = if (noBuilds) "--no-builds" else ""
       run(
         logger=logger,
-        f"conda env export --prefix $condaEnvironmentPrefix $condaEnvExportArgs"
+        f"$condaExecutable env export --prefix $condaEnvironmentPrefix $condaEnvExportArgs"
           #| """egrep -v "^prefix""""
           #| f"""sed "s/name: null/name: ${environment.name}/""""
           #> exportedYaml.toFile
