@@ -27,13 +27,15 @@ object CondaEnvironmentBuilderMain {
 }
 
 class CondaEnvironmentBuilderCommonArgs
-( @arg(doc="Directory to use for temporary files.")                            val tmpDir: DirPath  = Paths.get(System.getProperty("java.io.tmpdir")),
-  @arg(doc="Minimum severity log-level to emit.")                              val logLevel: LogLevel = LogLevel.Info,
+( @arg(doc="Directory to use for temporary files.") val tmpDir: DirPath  = Paths.get(System.getProperty("java.io.tmpdir")),
+  @arg(doc="Minimum severity log-level to emit.")   val logLevel: LogLevel = LogLevel.Info,
+  @arg(doc="Use mamba instead of conda.")           val mamba: Boolean = false
 ) {
 
   System.setProperty("java.io.tmpdir", tmpDir.toAbsolutePath.toString)
 
   Logger.level = this.logLevel
+  CondaEnvironmentBuilderTool.UseMamba = mamba
 }
 
 class CondaEnvironmentBuilderMain extends LazyLogging {
