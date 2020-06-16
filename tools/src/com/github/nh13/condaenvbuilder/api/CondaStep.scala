@@ -14,13 +14,15 @@ case class CondaStep(channels: Seq[Channel], requirements: Seq[Requirement]) ext
 
   /** Inherit (in-order) channels and requirements from the given step(s).
     *
+    * Inherited channels are prioritized first.
+    *
     * @param step one or more steps from which to inherit.
     */
   override def inheritFrom(step: Step*): Step = {
     val steps = step.collect { case s: CondaStep => s }
     this.copy(
       requirements = Requirement.join(parent=requirements, child=steps.flatMap(_.requirements)),
-      channels     = (this.channels ++ steps.flatMap(_.channels)).distinct)
+      channels     = (steps.flatMap(_.channels) ++ this.channels).distinct)
   }
 
   /** Applies (in-order) channels and requirements from the given step(s).  The default channels are prepended to the
@@ -33,7 +35,7 @@ case class CondaStep(channels: Seq[Channel], requirements: Seq[Requirement]) ext
   def withDefaults(requirementsMap: Map[String, Requirement], channels: Seq[Channel]): CondaStep = {
     this.copy(
       requirements = Requirement.withDefaults(requirements=this.requirements, defaultsMap=requirementsMap),
-      channels     = (this.channels ++ channels).distinct
+      channels     = (channels ++ this.channels).distinct
     )
   }
 
@@ -46,7 +48,7 @@ case class CondaStep(channels: Seq[Channel], requirements: Seq[Requirement]) ext
     case _defaults: CondaStep =>
       this.copy(
         requirements = Requirement.withDefaults(requirements=this.requirements, defaults=_defaults.requirements),
-        channels     = (this.channels ++ _defaults.channels).distinct
+        channels     = (_defaults.channels ++ this.channels).distinct
       )
     case _ => this
   }
