@@ -10,7 +10,7 @@ import io.circe.{Decoder, Encoder, HCursor, Json}
   * @param channels the conda channels, in priority order
   * @param requirements the package requirements.
   */
-case class CondaStep(channels: Seq[Channel], requirements: Seq[Requirement]) extends StepWithDefaults {
+case class CondaStep(channels: Seq[Channel]=Seq.empty, requirements: Seq[Requirement]=Seq.empty) extends StepWithDefaults {
 
   /** Inherit (in-order) channels and requirements from the given step(s).
     *
@@ -18,7 +18,7 @@ case class CondaStep(channels: Seq[Channel], requirements: Seq[Requirement]) ext
     *
     * @param step one or more steps from which to inherit.
     */
-  override def inheritFrom(step: Step*): Step = {
+  override def inheritFrom(step: Step*): CondaStep = {
     val steps = step.collect { case s: CondaStep => s }
     this.copy(
       requirements = Requirement.join(parent=requirements, child=steps.flatMap(_.requirements)),
@@ -34,8 +34,8 @@ case class CondaStep(channels: Seq[Channel], requirements: Seq[Requirement]) ext
     */
   def withDefaults(requirementsMap: Map[String, Requirement], channels: Seq[Channel]): CondaStep = {
     this.copy(
-      requirements = Requirement.withDefaults(requirements=this.requirements, defaultsMap=requirementsMap),
-      channels     = (channels ++ this.channels).distinct
+      channels     = (channels ++ this.channels).distinct,
+      requirements = Requirement.withDefaults(requirements=this.requirements, defaultsMap=requirementsMap)
     )
   }
 
@@ -44,11 +44,11 @@ case class CondaStep(channels: Seq[Channel], requirements: Seq[Requirement]) ext
     *
     * @param defaults the default step.
     */
-  def withDefaults(defaults: Step): StepWithDefaults = defaults match {
+  def withDefaults(defaults: Step): CondaStep = defaults match {
     case _defaults: CondaStep =>
       this.copy(
+        channels     = (_defaults.channels ++ this.channels).distinct,
         requirements = Requirement.withDefaults(requirements=this.requirements, defaults=_defaults.requirements),
-        channels     = (_defaults.channels ++ this.channels).distinct
       )
     case _ => this
   }

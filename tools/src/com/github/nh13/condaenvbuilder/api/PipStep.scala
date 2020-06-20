@@ -10,12 +10,12 @@ import io.circe.{Decoder, Encoder, HCursor, Json}
   * @param args the arguments to pip in the conda YAML file.
   * @param requirements the pip package requirements.
   */
-case class PipStep(args: Seq[String], requirements: Seq[Requirement]) extends StepWithDefaults {
+case class PipStep(args: Seq[String]=Seq.empty, requirements: Seq[Requirement]=Seq.empty) extends StepWithDefaults {
   /** Inherit (in-order) args and requirements from the given step(s).
     *
     * @param step one or more steps from which to inherit.
     */
-  override def inheritFrom(step: Step*): Step = {
+  override def inheritFrom(step: Step*): PipStep = {
     val steps = step.collect { case s: PipStep => s }
     // Developer note: we could try to remove duplicate arguments, for example with Sopt, but that is the beyond the
     // scope here.
@@ -30,7 +30,7 @@ case class PipStep(args: Seq[String], requirements: Seq[Requirement]) extends St
     *
     * @param defaults the default step.
     */
-  def withDefaults(defaults: Step): StepWithDefaults = defaults match {
+  def withDefaults(defaults: Step): PipStep = defaults match {
     case _defaults: PipStep =>
       this.copy(
         args         = (_defaults.args ++ this.args).distinct,

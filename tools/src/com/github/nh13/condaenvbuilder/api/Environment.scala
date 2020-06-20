@@ -12,7 +12,23 @@ import io.circe.{Decoder, Encoder, HCursor, Json}
   * @param steps the steps to build this environment
   * @param group the name of the group to which this environment belongs.
   */
-case class Environment(name: String, steps: Seq[Step], group: String) {
+case class Environment(name: String, steps: Seq[Step] = Seq.empty, group: String) {
+
+  /** Inherit steps from the given environment.
+    *
+    * If the current environment contains a step of the same type as the inherited environment, then the former step
+    * will inherit from the latter step.  If no step in the current environment of the same type as the inherited
+    * environment exists, the the step to be inherited will be added.  This process is applied iteratively, so that only
+    * the new environment will have only one step of each type.
+    *
+    * @param environment the environment to inherit from
+    * @return a new environment with inherited steps
+    */
+  def inheritFrom(environment: Environment*): Environment = {
+    if (environment.isEmpty) this
+    else this.coalesce((this.steps ++ environment.flatMap(_.steps)):_*)
+  }
+
   /** Applies the default environment to this environment.
     *
     * Each step in the default environment will be applied to each step in this environment.  This allows default
@@ -25,7 +41,7 @@ case class Environment(name: String, steps: Seq[Step], group: String) {
 
   /** Applies the default step(s) to this environment.
     *
-    * Each default setp will be applied to each step in this environment.  This allows default package versions, conda
+    * Each default step will be applied to each step in this environment.  This allows default package versions, conda
     * channels, and other step-specific defaults to be applied.
     *
     * @param defaults the default step(s) to apply.
@@ -43,32 +59,25 @@ case class Environment(name: String, steps: Seq[Step], group: String) {
     this.copy(steps=steps.distinct)
   }
 
-  /** Inherit steps from the given environment.
+  /** Coalesce the steps in the current environment such that there are only one step of each type.  Earlier steps will
+    * take priority over later steps.
     *
-    * If the current environment contains a step of the same type as the inherited environment, then the former step
-    * will inherit from the latter step.  If no step in the current environment of the same type as the inherited
-    * environment exists, the the step to be inherited will be added.  This process is applied iteratively, so that only
-    * the new environment will have only one step of each type.
+    * Go through all steps, starting with an empty list of steps, and trying to inherit from a step one-by-one. If no
+    * steps in the current list of steps can inherit from the given parent, then just add the parent.  This handles
+    * the case where this environment does not contain a step of the inherited type, for example, this environment
+    * lacks Pip steps, but inherits one.
     *
-    * @param environment the environment to inherit from
-    * @return a new environment with inherited steps
+    * @param step additional steps to incorporate
+    * @return
     */
-  def inheritFrom(environment: Environment*): Environment = {
-    if (environment.isEmpty) this
-    else {
-      // Go through all steps, starting with an empty list of steps, and trying to inherit from a step one-by-one. If no
-      // steps in the current list of steps can inherit from the given parent, then just add the parent.  This handles
-      // the case where this environment does not contain a step of the inherited type, for example, this environment
-      // lacks Pip steps, but inherits one.
-      val updated: Seq[Step] = (this.steps ++ environment.flatMap(_.steps))
-        .foldLeft(Seq.empty[Step]) { case (steps: Seq[Step], parentStep: Step) =>
-          steps.find { curStep: Step => curStep.canInheritFrom(parentStep) } match {
-            case None                => steps :+ parentStep
-            case Some(curStep: Step) => steps.filterNot(_ == curStep) :+ curStep.inheritFrom(parentStep)
-          }
-        }
-      this.copy(steps=updated.toIndexedSeq)
+  def coalesce(step: Step*): Environment = {
+    val updated: Seq[Step] = (this.steps ++ step).foldLeft(Seq.empty[Step]) { case (steps: Seq[Step], parentStep: Step) =>
+      steps.find { curStep: Step => curStep.canInheritFrom(parentStep) } match {
+        case None                => steps :+ parentStep
+        case Some(curStep: Step) => steps.filterNot(_ == curStep) :+ curStep.inheritFrom(parentStep)
+      }
     }
+    this.copy(steps=updated.toIndexedSeq)
   }
 }
 

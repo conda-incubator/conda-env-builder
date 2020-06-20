@@ -12,13 +12,13 @@ import io.circe.{Decoder, Encoder, HCursor, Json}
   * @param path the working directory to use when executing the command
   * @param commands the commands to execute
   */
-case class CodeStep(path: Path, commands: Seq[Command]) extends Step {
+case class CodeStep(path: Path, commands: Seq[Command]=Seq.empty) extends Step {
   /** Inherit commands from the given step(s).  The inherited commands will prepended (i.e. executed prior to) the
     * current commands
     *
     * @param step the step(s) to inherit from
     */
-  override def inheritFrom(step: Step*): Step = {
+  override def inheritFrom(step: Step*): CodeStep = {
     val commands = step.collect { case s: CodeStep => s }.flatMap { _step =>
       if (_step.path == this.path) _step.commands
       else Seq(f"pushd ${_step.path}; " + _step.commands.mkString("; ") + "; popd")
