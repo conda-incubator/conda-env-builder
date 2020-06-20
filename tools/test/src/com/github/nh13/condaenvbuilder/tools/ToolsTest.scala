@@ -7,6 +7,7 @@ import com.github.nh13.condaenvbuilder.testing.UnitSpec
 
 class ToolsTest extends UnitSpec {
 
+  // YAML input to the Compile tool
   private val specString: String =  {
     """name: example
       |environments:
@@ -66,6 +67,7 @@ class ToolsTest extends UnitSpec {
       |            - "python setup.py develop"""".stripMargin
   }
 
+  // YAML compiled by the Compile tool
   val compiledString: String = {
     """name: example
       |environments:
@@ -120,6 +122,118 @@ class ToolsTest extends UnitSpec {
       |        - samtools=1.9""".stripMargin
   }
 
+  // Compiled but after running Solve with dryRun=true
+  val compiledReformatted: String = {
+    """name: example
+      |environments:
+      |  samtools:
+      |    group: alignment
+      |    steps:
+      |    - conda:
+      |        channels:
+      |        - conda-forge
+      |        - bioconda
+      |        requirements:
+      |        - samtools=1.9
+      |  bwa:
+      |    group: alignment
+      |    steps:
+      |    - conda:
+      |        channels:
+      |        - conda-forge
+      |        - bioconda
+      |        requirements:
+      |        - bwa=0.7.17
+      |        - samtools=1.9
+      |  hisat2:
+      |    group: alignment
+      |    steps:
+      |    - conda:
+      |        channels:
+      |        - conda-forge
+      |        - bioconda
+      |        requirements:
+      |        - hisat2=2.2.0
+      |        - samtools=1.9
+      |  conda-env-builder:
+      |    group: conda-env-builder
+      |    steps:
+      |    - conda:
+      |        channels:
+      |        - conda-forge
+      |        - bioconda
+      |        requirements:
+      |        - pybedtools=0.8.1
+      |        - yaml=0.1.7
+      |        - pip==default
+      |    - pip:
+      |        args: []
+      |        requirements:
+      |        - defopt==5.1.0
+      |        - samwell==0.0.1
+      |        - distutils-strtobool==0.1.0
+      |    - code:
+      |        path: .
+      |        commands:
+      |        - python setup.py develop""".stripMargin
+  }
+
+  // Compiled but after running Solve with dryRun=true and groups=Set("alignment")
+  val compiledReformattedAlignmentOnly: String = {
+    """name: example
+      |environments:
+      |  samtools:
+      |    group: alignment
+      |    steps:
+      |    - conda:
+      |        channels:
+      |        - conda-forge
+      |        - bioconda
+      |        requirements:
+      |        - samtools=1.9
+      |  bwa:
+      |    group: alignment
+      |    steps:
+      |    - conda:
+      |        channels:
+      |        - conda-forge
+      |        - bioconda
+      |        requirements:
+      |        - bwa=0.7.17
+      |        - samtools=1.9
+      |  hisat2:
+      |    group: alignment
+      |    steps:
+      |    - conda:
+      |        channels:
+      |        - conda-forge
+      |        - bioconda
+      |        requirements:
+      |        - hisat2=2.2.0
+      |        - samtools=1.9
+      |  conda-env-builder:
+      |    group: conda-env-builder
+      |    steps:
+      |    - conda:
+      |        channels:
+      |        - conda-forge
+      |        - bioconda
+      |        requirements:
+      |        - pybedtools=0.8.1
+      |        - yaml=0.1.7
+      |    - pip:
+      |        args: []
+      |        requirements:
+      |        - defopt==5.1.0
+      |        - samwell==0.0.1
+      |        - distutils-strtobool==0.1.0
+      |    - code:
+      |        path: .
+      |        commands:
+      |        - python setup.py develop""".stripMargin
+  }
+
+  // Solved YAML for OSX
   val solved: String = {
     """name: example
       |environments:
@@ -338,5 +452,29 @@ class ToolsTest extends UnitSpec {
           |# No custom commands""".stripMargin
       }
     }
+  }
+
+  "Solve" should s"solve a compiled YAML file" in {
+    val compiledPath = makeTempFile("compiled.", ".yaml")
+    val solvedPath = makeTempFile("output.", ".yaml")
+
+    Io.writeLines(path=compiledPath, lines=Seq(compiledString))
+
+    val solve = new Solve(config=compiledPath, output=solvedPath, dryRun=true)
+    solve.execute()
+
+    Io.readLines(path=solvedPath).mkString("\n") shouldBe compiledReformatted // since we skipped the internal solving step
+  }
+
+  "Solve" should s"solve a compiled YAML file for a given group" in {
+    val compiledPath = makeTempFile("compiled.", ".yaml")
+    val solvedPath = makeTempFile("output.", ".yaml")
+
+    Io.writeLines(path=compiledPath, lines=Seq(compiledString))
+
+    val solve = new Solve(config=compiledPath, output=solvedPath, groups=Set("alignment"), dryRun=true)
+    solve.execute()
+
+    Io.readLines(path=solvedPath).mkString("\n") shouldBe compiledReformattedAlignmentOnly // since we skipped the internal solving step
   }
 }
