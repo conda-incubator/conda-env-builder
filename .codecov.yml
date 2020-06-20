@@ -1,6 +1,8 @@
 coverage:
   precision: 1
   round: down
+  ignore:
+  - .*com.github.nh13.condaenvbuilder.cmdline/ClpGroups.scala.*
   status:
     project:
       default:

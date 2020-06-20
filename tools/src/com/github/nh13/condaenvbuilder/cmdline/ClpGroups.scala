@@ -10,5 +10,5 @@ object ClpGroups {
     override val description: String = "Utility programs."
   }
 
-  final val Util       = classOf[_Util]
+  final val Util = classOf[_Util]
 }
