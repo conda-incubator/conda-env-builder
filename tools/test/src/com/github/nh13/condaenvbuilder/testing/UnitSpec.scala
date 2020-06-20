@@ -1,7 +1,7 @@
 package com.github.nh13.condaenvbuilder.testing
 
 import com.fulcrumgenomics.commons.util.CaptureSystemStreams
-import com.github.nh13.condaenvbuilder.api.Step
+import com.github.nh13.condaenvbuilder.api.{Requirement, Step}
 import io.circe.{Json, _}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -13,6 +13,14 @@ trait UnitSpec extends AnyFlatSpec with Matchers with OptionValues with EitherVa
   implicit class EitherRightOrLeft[L, R](either: Either[L, R]) {
     def leftValue: L  = either.swap.toOption.value
     def rightValue: R = either.toOption.value
+  }
+
+  implicit class RequirementsFromStrings(requirements: Seq[String]) {
+    def reqs: Seq[Requirement] = this.requirements.map(Requirement(_))
+  }
+
+  implicit class StringsFromRequirements(requirements: Seq[Requirement]) {
+    def strings: Seq[String] = this.requirements.map(_.toString)
   }
 
   class DummyStep extends Step
