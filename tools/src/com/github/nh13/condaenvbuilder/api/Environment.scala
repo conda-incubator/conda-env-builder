@@ -13,36 +13,7 @@ import io.circe.{Decoder, Encoder, HCursor, Json}
   * @param group the name of the group to which this environment belongs.
   */
 case class Environment(name: String, steps: Seq[Step], group: String) {
-  /** Applies the default environment to this environment.
-    *
-    * Each step in the default environment will be applied to each step in this environment.  This allows default
-    * package versions, conda channels, and other step-specific defaults to be applied.
-    *
-    * @param defaults the default environment.
-    * @return a new environment with the default environment applied
-    */
-  def withDefaults(defaults: Environment): Environment = withDefaults(defaults.steps:_*)
-
-  /** Applies the default step(s) to this environment.
-    *
-    * Each default setp will be applied to each step in this environment.  This allows default package versions, conda
-    * channels, and other step-specific defaults to be applied.
-    *
-    * @param defaults the default step(s) to apply.
-    * @return a new environment with the default steps applied
-   */
-  def withDefaults(defaults: Step*): Environment = {
-    val steps = this.steps.map {
-      case step: StepWithDefaults =>
-        defaults.foldLeft(step) {
-          case (curStep: StepWithDefaults, defaultStep: Step) => curStep.withDefaults(defaults=defaultStep)
-          case (curStep: StepWithDefaults, _)                 => curStep
-        }
-      case step: Step             => step
-    }
-    this.copy(steps=steps.distinct)
-  }
-
+  
   /** Inherit steps from the given environment.
     *
     * If the current environment contains a step of the same type as the inherited environment, then the former step
@@ -69,6 +40,36 @@ case class Environment(name: String, steps: Seq[Step], group: String) {
         }
       this.copy(steps=updated.toIndexedSeq)
     }
+  }
+
+  /** Applies the default environment to this environment.
+    *
+    * Each step in the default environment will be applied to each step in this environment.  This allows default
+    * package versions, conda channels, and other step-specific defaults to be applied.
+    *
+    * @param defaults the default environment.
+    * @return a new environment with the default environment applied
+    */
+  def withDefaults(defaults: Environment): Environment = withDefaults(defaults.steps:_*)
+
+  /** Applies the default step(s) to this environment.
+    *
+    * Each default step will be applied to each step in this environment.  This allows default package versions, conda
+    * channels, and other step-specific defaults to be applied.
+    *
+    * @param defaults the default step(s) to apply.
+    * @return a new environment with the default steps applied
+   */
+  def withDefaults(defaults: Step*): Environment = {
+    val steps = this.steps.map {
+      case step: StepWithDefaults =>
+        defaults.foldLeft(step) {
+          case (curStep: StepWithDefaults, defaultStep: Step) => curStep.withDefaults(defaults=defaultStep)
+          case (curStep: StepWithDefaults, _)                 => curStep
+        }
+      case step: Step             => step
+    }
+    this.copy(steps=steps.distinct)
   }
 }
 

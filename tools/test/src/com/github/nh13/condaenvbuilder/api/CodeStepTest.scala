@@ -5,6 +5,39 @@ import java.nio.file.Paths
 import com.github.nh13.condaenvbuilder.testing.UnitSpec
 import io.circe.syntax._
 
+object CodeStepTest extends UnitSpec {
+  val TestCases: Seq[(CodeStep, String)] = Seq(
+    // empty set of commands
+    (CodeStep(path="."), {
+      """{
+        |  "path" : ".",
+        |  "commands" : [
+        |  ]
+        |}""".stripMargin
+    }),
+    // single command
+    (CodeStep(path="/root", "foo"), {
+      """{
+        |  "path" : "/root",
+        |  "commands" : [
+        |    "foo"
+        |  ]
+        |}""".stripMargin
+    }),
+
+    // multiple command
+    (CodeStep(path="/root", "foo", "bar"), {
+      """{
+        |  "path" : "/root",
+        |  "commands" : [
+        |    "foo",
+        |    "bar"
+        |  ]
+        |}""".stripMargin
+    })
+  )
+}
+
 class CodeStepTest extends UnitSpec {
 
   "CodeStep" should "store one or more commands" in {
@@ -35,47 +68,16 @@ class CodeStepTest extends UnitSpec {
     )
   }
 
-  private val testCases: Seq[(CodeStep, String)] = Seq(
-    // empty set of commands
-    (CodeStep(path="."), {
-      """{
-        |  "path" : ".",
-        |  "commands" : [
-        |  ]
-        |}""".stripMargin
-    }),
-    // single command
-    (CodeStep(path="/root", "foo"), {
-      """{
-        |  "path" : "/root",
-        |  "commands" : [
-        |    "foo"
-        |  ]
-        |}""".stripMargin
-    }),
-
-    // multiple command
-    (CodeStep(path="/root", "foo", "bar"), {
-      """{
-        |  "path" : "/root",
-        |  "commands" : [
-        |    "foo",
-        |    "bar"
-        |  ]
-        |}""".stripMargin
-    })
-  )
-
   "CodeStep.encoder" should "encode a CodeStep as JSON" in {
     import Encoders.EncodeCodeStep
-    testCases.foreach { case (step, string) =>
+    CodeStepTest.TestCases.foreach { case (step, string) =>
       step.asJson.toString shouldBe string
     }
   }
 
   "CodeStep.decoder" should "decode CodeStep from JSON" in {
     import Decoders.DecodeCodeStep
-    testCases.foreach { case (step, string) =>
+    CodeStepTest.TestCases.foreach { case (step, string) =>
       toJson(string).as[CodeStep].rightValue shouldBe step
     }
   }

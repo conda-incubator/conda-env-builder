@@ -3,6 +3,44 @@ package com.github.nh13.condaenvbuilder.api
 import com.github.nh13.condaenvbuilder.testing.UnitSpec
 import io.circe.syntax._
 
+object PipStepTest extends UnitSpec {
+  private val TestCases: Seq[(PipStep, String)] = Seq(
+    // no args or requirements
+    (PipStep(), {
+      """{
+        |  "args" : [
+        |  ],
+        |  "requirements" : [
+        |  ]
+        |}""".stripMargin
+    }),
+    // one arg, one requirement
+    (PipStep(args=Seq("some argument"), requirements=Seq("a==1").reqs), {
+      """{
+        |  "args" : [
+        |    "some argument"
+        |  ],
+        |  "requirements" : [
+        |    "a==1"
+        |  ]
+        |}""".stripMargin
+    }),
+    // multiple args and requirements
+    (PipStep(args=Seq("arg 1", "arg 2"), requirements=Seq("a==1", "b==2").reqs), {
+      """{
+        |  "args" : [
+        |    "arg 1",
+        |    "arg 2"
+        |  ],
+        |  "requirements" : [
+        |    "a==1",
+        |    "b==2"
+        |  ]
+        |}""".stripMargin
+    })
+  )
+}
+
 class PipStepTest extends UnitSpec {
   "PipStep" should "store pip arguments and requirements" in {
     PipStep().args shouldBe Symbol("empty")
@@ -57,52 +95,16 @@ class PipStepTest extends UnitSpec {
     step2.withDefaults(step1).requirements should contain theSameElementsInOrderAs Seq("a==1", "b==2").reqs
   }
 
-  private val testCases: Seq[(PipStep, String)] = Seq(
-    // no args or requirements
-    (PipStep(), {
-      """{
-        |  "args" : [
-        |  ],
-        |  "requirements" : [
-        |  ]
-        |}""".stripMargin
-    }),
-    // one arg, one requirement
-    (PipStep(args=Seq("some argument"), requirements=Seq("a==1").reqs), {
-      """{
-        |  "args" : [
-        |    "some argument"
-        |  ],
-        |  "requirements" : [
-        |    "a==1"
-        |  ]
-        |}""".stripMargin
-    }),
-    // multiple args and requirements
-    (PipStep(args=Seq("arg 1", "arg 2"), requirements=Seq("a==1", "b==2").reqs), {
-      """{
-        |  "args" : [
-        |    "arg 1",
-        |    "arg 2"
-        |  ],
-        |  "requirements" : [
-        |    "a==1",
-        |    "b==2"
-        |  ]
-        |}""".stripMargin
-    })
-  )
-
   "PipStep.encoder" should "encode a PipStep as JSON" in {
     import Encoders.EncodePipStep
-    testCases.foreach { case (step, string) =>
+    PipStepTest.TestCases.foreach { case (step, string) =>
       step.asJson.toString shouldBe string
     }
   }
 
   "PipStep.decoder" should "decode PipStep from JSON" in {
     import Decoders.DecodePipStep
-    testCases.foreach { case (step, string) =>
+    PipStepTest.TestCases.foreach { case (step, string) =>
       toJson(string).as[PipStep].rightValue shouldBe step
     }
   }

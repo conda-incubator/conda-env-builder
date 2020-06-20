@@ -3,6 +3,44 @@ package com.github.nh13.condaenvbuilder.api
 import com.github.nh13.condaenvbuilder.testing.UnitSpec
 import io.circe.syntax._
 
+object CondaStepTest extends UnitSpec {
+  val TestCases: Seq[(CondaStep, String)] = Seq(
+    // no channels or requirements
+    (CondaStep(), {
+      """{
+        |  "channels" : [
+        |  ],
+        |  "requirements" : [
+        |  ]
+        |}""".stripMargin
+    }),
+    // one channel, one requirement
+    (CondaStep(channels=Seq("some channel"), requirements=Seq("a==1").reqs), {
+      """{
+        |  "channels" : [
+        |    "some channel"
+        |  ],
+        |  "requirements" : [
+        |    "a==1"
+        |  ]
+        |}""".stripMargin
+    }),
+    // multiple channels and requirements
+    (CondaStep(channels=Seq("channel 1", "channel 2"), requirements=Seq("a==1", "b==2").reqs), {
+      """{
+        |  "channels" : [
+        |    "channel 1",
+        |    "channel 2"
+        |  ],
+        |  "requirements" : [
+        |    "a==1",
+        |    "b==2"
+        |  ]
+        |}""".stripMargin
+    })
+  )
+}
+
 class CondaStepTest extends UnitSpec {
   "CondaStep" should "store channels and requirements" in {
     CondaStep().channels shouldBe Symbol("empty")
@@ -57,52 +95,16 @@ class CondaStepTest extends UnitSpec {
     step2.withDefaults(step1).requirements should contain theSameElementsInOrderAs Seq("a==1", "b==2").reqs
   }
 
-  private val testCases: Seq[(CondaStep, String)] = Seq(
-    // no channels or requirements
-    (CondaStep(), {
-      """{
-        |  "channels" : [
-        |  ],
-        |  "requirements" : [
-        |  ]
-        |}""".stripMargin
-    }),
-    // one channel, one requirement
-    (CondaStep(channels=Seq("some channel"), requirements=Seq("a==1").reqs), {
-      """{
-        |  "channels" : [
-        |    "some channel"
-        |  ],
-        |  "requirements" : [
-        |    "a==1"
-        |  ]
-        |}""".stripMargin
-    }),
-    // multiple channels and requirements
-    (CondaStep(channels=Seq("channel 1", "channel 2"), requirements=Seq("a==1", "b==2").reqs), {
-      """{
-        |  "channels" : [
-        |    "channel 1",
-        |    "channel 2"
-        |  ],
-        |  "requirements" : [
-        |    "a==1",
-        |    "b==2"
-        |  ]
-        |}""".stripMargin
-    })
-  )
-
   "CondaStep.encoder" should "encode a CondaStep as JSON" in {
     import Encoders.EncodeCondaStep
-    testCases.foreach { case (step, string) =>
+    CondaStepTest.TestCases.foreach { case (step, string) =>
       step.asJson.toString shouldBe string
     }
   }
 
   "CondaStep.decoder" should "decode CondaStep from JSON" in {
     import Decoders.DecodeCondaStep
-    testCases.foreach { case (step, string) =>
+    CondaStepTest.TestCases.foreach { case (step, string) =>
       toJson(string).as[CondaStep].rightValue shouldBe step
     }
   }
