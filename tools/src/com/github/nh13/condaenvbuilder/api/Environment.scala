@@ -12,8 +12,8 @@ import io.circe.{Decoder, Encoder, HCursor, Json}
   * @param steps the steps to build this environment
   * @param group the name of the group to which this environment belongs.
   */
-case class Environment(name: String, steps: Seq[Step], group: String) {
-  
+case class Environment(name: String, steps: Seq[Step] = Seq.empty, group: String) {
+
   /** Inherit steps from the given environment.
     *
     * If the current environment contains a step of the same type as the inherited environment, then the former step
@@ -26,20 +26,7 @@ case class Environment(name: String, steps: Seq[Step], group: String) {
     */
   def inheritFrom(environment: Environment*): Environment = {
     if (environment.isEmpty) this
-    else {
-      // Go through all steps, starting with an empty list of steps, and trying to inherit from a step one-by-one. If no
-      // steps in the current list of steps can inherit from the given parent, then just add the parent.  This handles
-      // the case where this environment does not contain a step of the inherited type, for example, this environment
-      // lacks Pip steps, but inherits one.
-      val updated: Seq[Step] = (this.steps ++ environment.flatMap(_.steps))
-        .foldLeft(Seq.empty[Step]) { case (steps: Seq[Step], parentStep: Step) =>
-          steps.find { curStep: Step => curStep.canInheritFrom(parentStep) } match {
-            case None                => steps :+ parentStep
-            case Some(curStep: Step) => steps.filterNot(_ == curStep) :+ curStep.inheritFrom(parentStep)
-          }
-        }
-      this.copy(steps=updated.toIndexedSeq)
-    }
+    else this.coalesce((this.steps ++ environment.flatMap(_.steps)):_*)
   }
 
   /** Applies the default environment to this environment.
@@ -70,6 +57,27 @@ case class Environment(name: String, steps: Seq[Step], group: String) {
       case step: Step             => step
     }
     this.copy(steps=steps.distinct)
+  }
+
+  /** Coalesce the steps in the current environment such that there are only one step of each type.  Earlier steps will
+    * take priority over later steps.
+    *
+    * Go through all steps, starting with an empty list of steps, and trying to inherit from a step one-by-one. If no
+    * steps in the current list of steps can inherit from the given parent, then just add the parent.  This handles
+    * the case where this environment does not contain a step of the inherited type, for example, this environment
+    * lacks Pip steps, but inherits one.
+    *
+    * @param step additional steps to incorporate
+    * @return
+    */
+  def coalesce(step: Step*): Environment = {
+    val updated: Seq[Step] = (this.steps ++ step).foldLeft(Seq.empty[Step]) { case (steps: Seq[Step], parentStep: Step) =>
+      steps.find { curStep: Step => curStep.canInheritFrom(parentStep) } match {
+        case None                => steps :+ parentStep
+        case Some(curStep: Step) => steps.filterNot(_ == curStep) :+ curStep.inheritFrom(parentStep)
+      }
+    }
+    this.copy(steps=updated.toIndexedSeq)
   }
 }
 
