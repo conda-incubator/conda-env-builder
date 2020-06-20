@@ -1,5 +1,7 @@
 package com.github.nh13.condaenvbuilder.testing
 
+import java.nio.file.{Files, Path}
+
 import com.fulcrumgenomics.commons.util.CaptureSystemStreams
 import com.github.nh13.condaenvbuilder.api.{Requirement, Step}
 import io.circe.{Json, _}
@@ -33,4 +35,11 @@ trait UnitSpec extends AnyFlatSpec with Matchers with OptionValues with EitherVa
   }
 
   def toJson(value: String): Json = maybeJson(value=value).rightValue
+
+  /** Creates a new temp file for use in testing that will be deleted when the VM exits. */
+  protected def makeTempFile(prefix: String, suffix: String) : Path = {
+    val path = Files.createTempFile(prefix, suffix)
+    path.toFile.deleteOnExit()
+    path
+  }
 }
