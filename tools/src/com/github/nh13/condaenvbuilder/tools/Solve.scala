@@ -1,6 +1,7 @@
 package com.github.nh13.condaenvbuilder.tools
 
 import cats.syntax.either._
+import com.fulcrumgenomics.commons.CommonsDef
 import com.fulcrumgenomics.commons.CommonsDef.{DirPath, FilePath, SafelyClosable}
 import com.fulcrumgenomics.commons.io.Io
 import com.fulcrumgenomics.commons.util.Logger
@@ -35,7 +36,8 @@ class Solve
   @arg(flag='n', doc="Assemble environments with the given name(s).", minElements=0) val names: Set[String] = Set.empty,
   @arg(flag='g', doc="Assemble environments with the given group(s).", minElements=0) val groups: Set[String] = Set.empty,
   @arg(doc="Compile the YAML configuration file before solving.") compile: Boolean = true,
-  @arg(doc="Remove build specification from dependencies (i.e. use `conda env export --no-builds`)") noBuilds: Boolean = false
+  @arg(doc="Remove build specification from dependencies (i.e. use `conda env export --no-builds`)") noBuilds: Boolean = false,
+  private[tools] val dryRun: Boolean = false // for testing
 ) extends CondaEnvironmentBuilderTool {
   import Solve._
 
@@ -71,7 +73,7 @@ class Solve
 
       // Set up where files and conda environments will get written
       val condaEnvironmentPrefix: DirPath = condaEnvironmentDir.resolve(environment.name)
-      val environmentYaml: PathToYaml     = Io.makeTempFile("config.", f"${environment.name}.yaml")
+      val environmentYaml: PathToYaml     = Io.makeTempFile("config.", f".${environment.name}.yaml")
       val writer                          = BuildWriter(
         environment               = environment,
         output                    = assemblyOutputDir,
@@ -80,31 +82,34 @@ class Solve
       )
 
       // Write the environment YAML
-      logger.info(s"Writing the environment YAML t for ${environment.name} to: ${writer.environmentYaml}")
       writer.writeEnvironmentYaml(logger=logger)
 
-      // Build the environment
-      logger.info(s"Building a temporary conda environment for ${environment.name} to: $condaEnvironmentPrefix")
-      run(
-        logger=logger,
-        f"$condaExecutable env create --verbose --quiet --prefix $condaEnvironmentPrefix --file $environmentYaml"
-      )
+      val exportedYaml: PathToYaml = if (dryRun) writer.environmentYaml else {
+        // Build the environment
+        logger.info(s"Building a temporary conda environment for ${environment.name} to: $condaEnvironmentPrefix")
+        run(
+          logger=logger,
+          f"$condaExecutable env create --verbose --quiet --prefix $condaEnvironmentPrefix --file $environmentYaml"
+        )
 
-      // Export the environment
-      logger.info(s"Exporting the conda environment for ${environment.name}")
-      val exportedYaml: FilePath     = Io.makeTempFile("config.", f"${environment.name}.yaml")
-      val condaEnvExportArgs: String = if (noBuilds) "--no-builds" else ""
-      run(
-        logger=logger,
-        f"$condaExecutable env export --prefix $condaEnvironmentPrefix $condaEnvExportArgs"
-          #| """egrep -v "^prefix""""
-          #| f"""sed "s/name: null/name: ${environment.name}/""""
-          #> exportedYaml.toFile
-      )
+        // Export the environment
+        logger.info(s"Exporting the conda environment for ${environment.name}")
+        val exportedYaml: PathToYaml     = Io.makeTempFile("config.", f".${environment.name}.yaml")
+        val condaEnvExportArgs: String = if (noBuilds) "--no-builds" else ""
+        run(
+          logger=logger,
+          f"$condaExecutable env export --prefix $condaEnvironmentPrefix $condaEnvExportArgs"
+            #| """egrep -v "^prefix""""
+            #| f"""sed "s/name: null/name: ${environment.name}/""""
+            #> exportedYaml.toFile
+        )
 
-      // Remove the temporary environment
-      logger.info(s"Removing the temporary the conda environment for ${environment.name}")
-      run(logger=logger, s"rm -rv $condaEnvironmentPrefix")
+        // Remove the temporary environment
+        logger.info(s"Removing the temporary the conda environment for ${environment.name}")
+        run(logger=logger, s"rm -rv $condaEnvironmentPrefix")
+
+        exportedYaml
+      }
 
       // Read in the exported environment
       logger.info(s"Reading the exported environment from: $exportedYaml")
@@ -125,7 +130,7 @@ class Solve
         step.requirements.foreach { req =>
           require(condaEnvironment.conda.exists(_.name == req.name), s"Could not find conda package '${req.name}' in solved conda packages")
         }
-        logger.debug(f"Updating to ${condaEnvironment.pip.length}%,d requirements")
+        logger.debug(f"Updating to ${condaEnvironment.conda.length}%,d requirements")
         step.copy(requirements=condaEnvironment.conda)
       }
       val pip: Option[PipStep] = environment.steps.collectFirst { case step: PipStep =>
