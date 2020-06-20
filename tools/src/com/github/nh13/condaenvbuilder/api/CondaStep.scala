@@ -34,8 +34,8 @@ case class CondaStep(channels: Seq[Channel]=Seq.empty, requirements: Seq[Require
     */
   def withDefaults(requirementsMap: Map[String, Requirement], channels: Seq[Channel]): CondaStep = {
     this.copy(
-      requirements = Requirement.withDefaults(requirements=this.requirements, defaultsMap=requirementsMap),
-      channels     = (channels ++ this.channels).distinct
+      channels     = (channels ++ this.channels).distinct,
+      requirements = Requirement.withDefaults(requirements=this.requirements, defaultsMap=requirementsMap)
     )
   }
 
@@ -44,11 +44,11 @@ case class CondaStep(channels: Seq[Channel]=Seq.empty, requirements: Seq[Require
     *
     * @param defaults the default step.
     */
-  def withDefaults(defaults: Step): StepWithDefaults = defaults match {
+  def withDefaults(defaults: Step): CondaStep = defaults match {
     case _defaults: CondaStep =>
       this.copy(
+        channels     = (_defaults.channels ++ this.channels).distinct,
         requirements = Requirement.withDefaults(requirements=this.requirements, defaults=_defaults.requirements),
-        channels     = (_defaults.channels ++ this.channels).distinct
       )
     case _ => this
   }

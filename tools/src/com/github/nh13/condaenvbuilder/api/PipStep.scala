@@ -30,7 +30,7 @@ case class PipStep(args: Seq[String]=Seq.empty, requirements: Seq[Requirement]=S
     *
     * @param defaults the default step.
     */
-  def withDefaults(defaults: Step): StepWithDefaults = defaults match {
+  def withDefaults(defaults: Step): PipStep = defaults match {
     case _defaults: PipStep =>
       this.copy(
         args         = (_defaults.args ++ this.args).distinct,
