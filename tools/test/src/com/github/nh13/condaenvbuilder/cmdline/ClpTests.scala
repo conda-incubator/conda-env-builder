@@ -22,7 +22,7 @@ class TestClp
 
 /** Some basic test for the CLP classes. */
 class ClpTests extends UnitSpec {
-  "FgBioMain" should "find a CLP and successfully set it up and execute it" in {
+  "CondaEnvironmentBuilderMain" should "find a CLP and successfully set it up and execute it" in {
     new CondaEnvironmentBuilderMain().makeItSo("TestClp --print-me=hello".split(' ')) shouldBe 0
   }
 
