@@ -3,11 +3,34 @@ package com.github.nh13.condaenvbuilder.api
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder, HCursor, Json}
 
-import scala.collection.mutable.ListBuffer
 
+/** A single conda environment.  This environment is built with multiple steps, which may include adding conda packages,
+  * pip packages, and commands to install packages from source (or otherwise).  Multiple environments may belong to the
+  * same "group", for example if they should be built together in the same docker image.
+  *
+  * @param name the name of this environment
+  * @param steps the steps to build this environment
+  * @param group the name of the group to which this environment belongs.
+  */
 case class Environment(name: String, steps: Seq[Step], group: String) {
+  /** Applies the default environment to this environment.
+    *
+    * Each step in the default environment will be applied to each step in this environment.  This allows default
+    * package versions, conda channels, and other step-specific defaults to be applied.
+    *
+    * @param defaults the default environment.
+    * @return a new environment with the default environment applied
+    */
   def withDefaults(defaults: Environment): Environment = withDefaults(defaults.steps:_*)
 
+  /** Applies the default step(s) to this environment.
+    *
+    * Each default setp will be applied to each step in this environment.  This allows default package versions, conda
+    * channels, and other step-specific defaults to be applied.
+    *
+    * @param defaults the default step(s) to apply.
+    * @return a new environment with the default steps applied
+   */
   def withDefaults(defaults: Step*): Environment = {
     val steps = this.steps.map {
       case step: StepWithDefaults =>
@@ -20,6 +43,16 @@ case class Environment(name: String, steps: Seq[Step], group: String) {
     this.copy(steps=steps.distinct)
   }
 
+  /** Inherit steps from the given environment.
+    *
+    * If the current environment contains a step of the same type as the inherited environment, then the former step
+    * will inherit from the latter step.  If no step in the current environment of the same type as the inherited
+    * environment exists, the the step to be inherited will be added.  This process is applied iteratively, so that only
+    * the new environment will have only one step of each type.
+    *
+    * @param environment the environment to inherit from
+    * @return a new environment with inherited steps
+    */
   def inheritFrom(environment: Environment*): Environment = {
     if (environment.isEmpty) this
     else {
@@ -63,6 +96,7 @@ object Environment {
 
   import Encoders.EncodeStep
 
+  /** Returns an YAML encoder for [[Environment]] */
   def encoder: Encoder[Environment] = new Encoder[Environment] {
     final def apply(environment: Environment): Json = Json.obj(
       ("group", environment.group.asJson),
@@ -70,6 +104,7 @@ object Environment {
     )
   }
 
+  /** Returns a YAML decoder for [[Environment]] */
   def decoder: Decoder[Environment] = new Decoder[Environment] {
     import Decoders.DecodeStep
     final def apply(c: HCursor): Decoder.Result[Environment] = {
