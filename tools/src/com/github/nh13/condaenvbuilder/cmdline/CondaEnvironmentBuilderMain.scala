@@ -29,13 +29,17 @@ object CondaEnvironmentBuilderMain {
 class CondaEnvironmentBuilderCommonArgs
 ( @arg(doc="Directory to use for temporary files.") val tmpDir: DirPath  = Paths.get(System.getProperty("java.io.tmpdir")),
   @arg(doc="Minimum severity log-level to emit.")   val logLevel: LogLevel = LogLevel.Info,
-  @arg(doc="Use mamba instead of conda.")           val mamba: Boolean = false
+  @arg(doc="Use mamba instead of conda.")           val mamba: Boolean = false,
+  @arg(doc="File extension to use for YAML files (no period).") val extension: String = "yml"
 ) {
+
+  assert(!extension.startsWith("."), s"File extension should not start with a period: '$extension'")
 
   System.setProperty("java.io.tmpdir", tmpDir.toAbsolutePath.toString)
 
   Logger.level = this.logLevel
   CondaEnvironmentBuilderTool.UseMamba = mamba
+  CondaEnvironmentBuilderTool.FileExtension = extension
 }
 
 class CondaEnvironmentBuilderMain extends LazyLogging {

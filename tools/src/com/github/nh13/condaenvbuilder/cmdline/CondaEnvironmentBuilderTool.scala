@@ -7,6 +7,9 @@ import com.github.nh13.condaenvbuilder.cmdline.CondaEnvironmentBuilderMain.Failu
 object CondaEnvironmentBuilderTool {
   /** True to use `mamba` instead of `conda`, false otherwise. */
   var UseMamba: Boolean = false
+
+  /** The file extension to use for YAML files. */
+  var FileExtension: String = "yml"
 }
 
 
@@ -15,13 +18,13 @@ trait CondaEnvironmentBuilderTool extends LazyLogging {
   def execute(): Unit
 
   /** Fail with just an exit code. */
-  def fail(exit: Int) = throw new FailureException(exit=exit)
+  def fail(exit: Int) = throw FailureException(exit=exit)
 
   /** Fail with the default exit code and a message. */
-  def fail(message: String) = throw new FailureException(message=Some(message))
+  def fail(message: String) = throw FailureException(message=Some(message))
 
   /** Fail with a specific error code and message. */
-  def fail(exit: Int, message: String) = throw new FailureException(exit=exit, message=Some(message))
+  def fail(exit: Int, message: String) = throw FailureException(exit=exit, message=Some(message))
 
   /** Generates a new validation exception with the given message. */
   def invalid(message: String) = throw new ValidationException(message)

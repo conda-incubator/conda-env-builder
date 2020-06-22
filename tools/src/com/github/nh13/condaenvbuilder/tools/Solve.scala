@@ -73,7 +73,7 @@ class Solve
 
       // Set up where files and conda environments will get written
       val condaEnvironmentPrefix: DirPath = condaEnvironmentDir.resolve(environment.name)
-      val environmentYaml: PathToYaml     = Io.makeTempFile("config.", f".${environment.name}.yaml")
+      val environmentYaml: PathToYaml     = Io.makeTempFile("config.", f".${environment.name}.${CondaEnvironmentBuilderTool.FileExtension}")
       val writer                          = BuildWriter(
         environment               = environment,
         output                    = assemblyOutputDir,
@@ -94,7 +94,7 @@ class Solve
 
         // Export the environment
         logger.info(s"Exporting the conda environment for ${environment.name}")
-        val exportedYaml: PathToYaml     = Io.makeTempFile("config.", f".${environment.name}.yaml")
+        val exportedYaml: PathToYaml     = Io.makeTempFile("config.", f".${environment.name}.${CondaEnvironmentBuilderTool.FileExtension}")
         val condaEnvExportArgs: String = if (noBuilds) "--no-builds" else ""
         run(
           logger=logger,

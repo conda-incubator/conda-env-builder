@@ -17,7 +17,7 @@ import com.github.nh13.condaenvbuilder.io.{BuildWriter, SpecParser}
     |Assembles a YAML Configuration file.
     |
     |For each environment, writes:
-    |1. the conda environment YAML to `<output>/<env-name>.yaml`
+    |1. the conda environment YAML to `<output>/<env-name>.yml`
     |2. the conda environment build script to `<output>/<env-name>.build-conda.sh`
     |3. the custom code build script to `<output>/<env-name>.build-local.sh`
     |
