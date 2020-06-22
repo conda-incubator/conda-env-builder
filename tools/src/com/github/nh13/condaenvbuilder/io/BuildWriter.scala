@@ -15,7 +15,7 @@ object BuildWriter {
 
   /** Returns the path to the environment's conda YAML. */
   private def toEnvironmentYaml(environment: Environment, output: DirPath): PathToYaml = {
-    output.resolve(f"${environment.name}.yaml")
+    output.resolve(f"${environment.name}.${CondaEnvironmentBuilderTool.FileExtension}")
   }
 
   /** Returns the path to the environment's conda build script. */
@@ -32,7 +32,7 @@ object BuildWriter {
     *
     * @param environment the environment for which build files should be created.
     * @param output the output directory where build files should be created.
-    * @param environmentYaml the path to use for the environment's conda YAML, otherwise `<output>/<env-name>.yaml`.
+    * @param environmentYaml the path to use for the environment's conda YAML, otherwise `<output>/<env-name>.yml`.
     * @param condaBuildScript the path to use for the environment's conda build script,
     *                         otherwise `<output>/<env-name>.build-conda.sh`.
     * @param codeBuildScript the path to use for the environment's custom code build script,
