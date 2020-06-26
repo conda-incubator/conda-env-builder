@@ -50,7 +50,7 @@ class Assemble
       .filter(e => groups.isEmpty || groups.contains(e.group))
 
     logger.info(f"Building ${environments.length}%,d out of ${spec.specs.length}%,d environments.")
-    spec.specs.map(_.environment).zipWithIndex.map { case (environment, index) =>
+    environments.zipWithIndex.map { case (environment, index) =>
       val writer = BuildWriter(environment=environment, output=output, condaEnvironmentDirectory=prefix)
       if (!overwrite) {
         logger.info(f"Checking environment (${index+1}/${environments.length}): ${environment.name}")
