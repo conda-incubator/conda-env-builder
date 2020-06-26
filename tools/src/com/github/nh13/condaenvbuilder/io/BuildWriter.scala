@@ -7,6 +7,7 @@ import com.fulcrumgenomics.commons.CommonsDef.{DirPath, FilePath}
 import com.fulcrumgenomics.commons.io.Io
 import com.fulcrumgenomics.commons.util.{LazyLogging, Logger}
 import com.github.nh13.condaenvbuilder.CondaEnvironmentBuilderDef.PathToYaml
+import com.github.nh13.condaenvbuilder.api.CodeStep.Command
 import com.github.nh13.condaenvbuilder.api.{CodeStep, CondaStep, Environment, PipStep}
 import com.github.nh13.condaenvbuilder.cmdline.CondaEnvironmentBuilderTool
 
@@ -178,9 +179,10 @@ case class BuildWriter(environment: Environment,
         writer.println("PS1=dummy\n")  // for sourcing
         writer.println(f". $$($condaExecutable info --base | tail -n 1)/etc/profile.d/conda.sh") // tail to ignore mamba header
         writer.println(f"$condaExecutable activate ${environment.name}")
+        writer.println()
         writer.println("set -eu") //
-        writer.println(f"pushd $${repo_root}\n")
-        codeStep.map(_.commands).foreach { command =>
+        writer.println(f"pushd $${repo_root}")
+        step.commands.foreach { command: Command =>
           writer.println(f"$command")
         }
         writer.println("popd\n\n")

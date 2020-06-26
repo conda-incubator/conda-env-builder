@@ -452,6 +452,30 @@ class ToolsTest extends UnitSpec {
           |
           |# No custom commands""".stripMargin
       }
+
+      val condaEnvBuilderCodePath  = outputDir.resolve("conda-env-builder.build-local.sh")
+      Io.readLines(condaEnvBuilderCodePath).mkString("\n") shouldBe {
+        """#/bin/bash
+          |# Custom code build file for environment: conda-env-builder
+          |set -xeuo pipefail
+          |
+          |repo_root=${1:-"."}
+          |
+          |# Activate conda environment: conda-env-builder
+          |set +eu
+          |PS1=dummy
+          |
+          |. $(conda info --base | tail -n 1)/etc/profile.d/conda.sh
+          |conda activate conda-env-builder
+          |
+          |set -eu
+          |pushd ${repo_root}
+          |python setup.py develop
+          |popd
+          |
+          |""".stripMargin
+      }
+
     }
   }
 
