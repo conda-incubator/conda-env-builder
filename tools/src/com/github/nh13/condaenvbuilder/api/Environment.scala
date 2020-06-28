@@ -73,7 +73,7 @@ case class Environment(name: String, steps: Seq[Step] = Seq.empty, group: String
   def coalesce(step: Step*): Environment = {
     val updated: Seq[Step] = (this.steps ++ step).foldLeft(Seq.empty[Step]) { case (steps: Seq[Step], parentStep: Step) =>
       steps.find { curStep: Step => curStep.canInheritFrom(parentStep) } match {
-        case None                => steps :+ parentStep
+        case None                => if (steps.contains(parentStep)) steps else steps :+ parentStep
         case Some(curStep: Step) => steps.filterNot(_ == curStep) :+ curStep.inheritFrom(parentStep)
       }
     }
