@@ -24,6 +24,10 @@ Build and maintain multiple custom conda environments all in once place.
   * [Overview](#overview)
   * [List of tools](#list-of-tools)
   * [Example](#example)
+    * [Compile](#compile)
+    * [Assemble](#assemble)
+    * [Solve](#solve)
+    * [Tabulate](#tabulate) 
   * [Why](#why)
   * [Building](#building)
   * [Command line](#command-line)
@@ -78,6 +82,8 @@ Below we highlight a few tools that you may find useful.
   * Builds `<env-name>.build-local.sh` to execute any custom commands after creating the conda envirnment.
 * `Solve`: updates the configuration with a full list of packages and versions for the environment.
   * For each environment, builds it (`conda env create`), exports it (`conda env export`), and update the specification
+* `Tabulate`: writes the specification in a tabular format. 
+  * Conda/pip requirement or custom comand per line, with each line specifying the environment name and group
   
 ## Example
 
@@ -154,6 +160,8 @@ environments:
 
 </details> 
 
+### Compile
+
 The `Compile` tool compiles each environment, adding inherited conda channels, conda and pip package requirements, pip
 install arguments, and custom commands.  It also applies the default package versions to package requirements without
 versions (ex `bwa` or `hisat2=default`).
@@ -217,6 +225,8 @@ environments:
 
 </details> 
 
+### Assemble
+
 The `Assemble` tool will create per-environment build files.  For example, for `bwa`, we have the environment YAML in
 `bwa.yaml`, the script to build the conda environment in `bwa.build-conda.sh`, and the script to execute custom commands
 in `bwa.build-local.sh`.
@@ -273,6 +283,8 @@ repo_root=${1:-"."}
 ```
 
 </details>
+
+### Solve
 
 
 The `Solve` tool will create a platform-specific set of requirements for each environment.  Use the `--no-builds` option
@@ -442,6 +454,40 @@ environments:
 `Assemble` can be run on this YAML configuration file to also build the environments reproducibly.
 
 </details>
+
+### Tabulate
+
+The Tabulate writes the specification in a tabular format.
+The columns are:
+
+1. The environment group
+2. The environment name
+3. The conda/pip requirement or custom command line
+4. The source of (3), either "conda", "pip" or "custom command"
+
+Each requirement for conda and pip steps will be on its own line; similarly for each command for code steps.
+Below is the output from the example YAML
+
+<details>
+
+<summary>`example.tab`</summary>
+
+```
+group              name               value                       source
+alignment          hisat2             hisat2=2.2.0                conda
+alignment          hisat2             samtools=1.9                conda
+alignment          bwa                bwa=0.7.17                  conda
+alignment          bwa                samtools=1.9                conda
+alignment          samtools           samtools=1.9                conda
+conda-env-builder  conda-env-builder  pybedtools=0.8.1            conda
+conda-env-builder  conda-env-builder  yaml=0.1.7                  conda
+conda-env-builder  conda-env-builder  defopt==5.1.0               conda
+conda-env-builder  conda-env-builder  samwell==0.0.1              conda
+conda-env-builder  conda-env-builder  distutils-strtobool==0.1.0  conda
+conda-env-builder  conda-env-builder  python setup.py develop     custom command
+```
+
+</details
 
 ## Why
 

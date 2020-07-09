@@ -123,6 +123,21 @@ class ToolsTest extends UnitSpec {
       |        - samtools=1.9""".stripMargin
   }
 
+  val tabulatedString: String = {
+    """group	name	value	source
+      |alignment	hisat2	hisat2=2.2.0	conda
+      |alignment	hisat2	samtools=1.9	conda
+      |alignment	bwa	bwa=0.7.17	conda
+      |alignment	bwa	samtools=1.9	conda
+      |alignment	samtools	samtools=1.9	conda
+      |conda-env-builder	conda-env-builder	pybedtools=0.8.1	conda
+      |conda-env-builder	conda-env-builder	yaml=0.1.7	conda
+      |conda-env-builder	conda-env-builder	defopt==5.1.0	conda
+      |conda-env-builder	conda-env-builder	samwell==0.0.1	conda
+      |conda-env-builder	conda-env-builder	distutils-strtobool==0.1.0	conda
+      |conda-env-builder	conda-env-builder	python setup.py develop	custom command""".stripMargin
+  }
+
   // Compiled but after running Solve with dryRun=true
   val compiledReformatted: String = {
     """name: example
@@ -501,5 +516,17 @@ class ToolsTest extends UnitSpec {
     solve.execute()
 
     Io.readLines(path=solvedPath).mkString("\n") shouldBe compiledReformattedAlignmentOnly // since we skipped the internal solving step
+  }
+
+  "Tabulate" should "tabulate the input YAML file" in {
+    val specPath      = makeTempFile("in.", CondaEnvironmentBuilderTool.FileExtension)
+    val tabulatedPath = makeTempFile("out.", CondaEnvironmentBuilderTool.FileExtension)
+
+    Io.writeLines(path=specPath, lines=Seq(specString))
+
+    val tabulate = new Tabulate(config=specPath, output=tabulatedPath)
+    tabulate.execute()
+
+    Io.readLines(path=tabulatedPath).mkString("\n") shouldBe tabulatedString
   }
 }
