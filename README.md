@@ -489,7 +489,7 @@ conda-env-builder  conda-env-builder  python setup.py develop     custom command
 
 </details>
 
-# Why
+## Why
 
 Why did I build this tool?  Well, I have a number of repositories with multiple [Snakemake](http://snakemake.readthedocs.io/) pipelines.
 Each pipeline may use one or more conda environments.  For example, Picard needs java 8+ but Varscan2 needs java7.  Or the MuTect JAR
@@ -588,4 +588,3 @@ For urgent matters, please contact us directly.
 ## License
 
 `conda-env-builder` is open source software released under the [MIT License](https://github.com/nh13/conda-env-builder/blob/master/LICENSE).
-
