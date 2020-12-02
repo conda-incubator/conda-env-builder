@@ -487,9 +487,9 @@ conda-env-builder  conda-env-builder  distutils-strtobool==0.1.0  conda
 conda-env-builder  conda-env-builder  python setup.py develop     custom command
 ```
 
-</details
+</details>
 
-## Why
+# Why
 
 Why did I build this tool?  Well, I have a number of repositories with multiple [Snakemake](http://snakemake.readthedocs.io/) pipelines.
 Each pipeline may use one or more conda environments.  For example, Picard needs java 8+ but Varscan2 needs java7.  Or the MuTect JAR
