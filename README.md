@@ -487,7 +487,7 @@ conda-env-builder  conda-env-builder  distutils-strtobool==0.1.0  conda
 conda-env-builder  conda-env-builder  python setup.py develop     custom command
 ```
 
-</details
+</details>
 
 ## Why
 
@@ -588,4 +588,3 @@ For urgent matters, please contact us directly.
 ## License
 
 `conda-env-builder` is open source software released under the [MIT License](https://github.com/nh13/conda-env-builder/blob/master/LICENSE).
-
