@@ -19,6 +19,7 @@ jobs:
           - ./mill --jobs 2 --disable-ticker -s tools.test
           - ./mill --jobs 2 --disable-ticker -s tools.scoverage.xmlReport
           - ./mill --jobs 2 --disable-ticker -s tools.scoverage.htmlReport
+          - bash <(curl -s https://codecov.io/bash) -c -F tools -f '!*.txt'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -32,6 +33,13 @@ jobs:
           git config --add user.name "Mill GithHub Actions"
           git config --add user.email "mill-ci@localhost"
           ${{ matrix.buildcmd }}
+      - name: Cache multiple paths
+        uses: actions/cache@v2
+        with:
+          path: |
+            - $HOME/.ivy2/cache
+            - $HOME/.cache/coursier
+            - $HOME/.cache/mill/download
 
   release-github:
     if: github.repository == 'nh13/conda-env-builder' && github.ref == 'refs/heads/master'
