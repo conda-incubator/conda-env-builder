@@ -1,3 +1,6 @@
+import $ivy.`org.scalaj::scalaj-http:2.4.2`
+
+import $file.ci.upload
 import java.util.jar.Attributes.Name.{IMPLEMENTATION_VERSION => ImplementationVersion}
 
 import ammonite.ops._
@@ -9,6 +12,7 @@ import mill.scalalib._
 import mill.scalalib.publish.{License, PomSettings, _}
 import $ivy.`com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION`
 import mill.contrib.scoverage.ScoverageModule
+import $ivy.`org.scalaj::scalaj-http:2.4.2`
 
 import scala.util.{Failure, Success, Try}
 
@@ -43,19 +47,19 @@ trait ReleaseModule extends ScalaModule {
   private def git(args: String*): String = %%("git", args)(pwd).out.string.trim
 
   /** Get the commit hash at the HEAD of this branch. */
-  private def gitHead: String = git("rev-parse", "HEAD")
+  def gitHead: String = git("rev-parse", "HEAD")
 
   /** Get the commit shorthash at the HEAD of this branch .*/
   private def shortHash: String = gitHead.take(7)
 
   /** The current tag of the currently checked out commit, if any. */
-  private def currentTag: Try[String] = Try(git("describe", "--exact-match", "--tags", "--always", gitHead))
+  def currentTag: Try[String] = Try(git("describe", "--exact-match", "--tags", "--always", gitHead))
 
   /** The hash of the last tagged commit. */
   private def hashOfLastTag: Try[String] = Try(git("rev-list", "--tags", "--max-count=1"))
 
   /** The last tag of the currently checked out branch, if any. */
-  private def lastTag: Try[String] = hashOfLastTag match {
+  def lastTag: Try[String] = hashOfLastTag match {
     case Success(hash) => Try(git("describe", "--abbrev=0", "--tags", "--always", hash))
     case Failure(e)    => Failure(e)
   }
@@ -105,9 +109,10 @@ trait CommonModule extends ScalaModule with ReleaseModule with ScoverageModule {
     MavenRepository("https://artifactory.broadinstitute.org/artifactory/libs-snapshot/")
   )
 
-  def localJar(assembly: PathRef, jarName: String): Unit = {
+  def localJar(assembly: PathRef, jarName: String): PathRef= {
     mkdir(pwd / 'jars)
     cp.over(assembly.path, pwd / 'jars / jarName)
+    PathRef(pwd / 'jars / jarName)
   }
 
   def testModulesDeps: Seq[TestModule] = Nil
@@ -140,4 +145,47 @@ object tools extends CommonModule {
 
   /** Build a JAR file from the com.github.nh13.condaenvbuilder.tools project. */
   def localJar = T { super.localJar(assembly(), jarName = "conda-env-builder.jar") }
+}
+
+def publishVersion = T.input {
+  tools.currentTag match {
+    case Success(tag) => (tag, tag)
+    case Failure(ex)  =>
+      val dirtySuffix = os.proc('git, 'diff).call().out.trim match {
+        case "" => ""
+        case s  => "-dirty" + Integer.toHexString(s.hashCode)
+      }
+      tools.lastTag match {
+        case Failure(ex)                  => throw new IllegalStateException("No tags!", ex)
+        case Success(latestTaggedVersion) =>
+          val commitsSinceLastTag = os.proc('git, "rev-list", tools.gitHead, "--not", latestTaggedVersion, "--count").call().out.trim.toInt
+          val label = s"$latestTaggedVersion-$commitsSinceLastTag-${tools.gitHead.take(6)}$dirtySuffix"
+          (latestTaggedVersion, label)
+      }
+  }
+}
+
+def uploadToGithub(authKey: String) = T.command {
+  val (releaseTag, label) = publishVersion()
+
+  // Determine if we should make a new release, or not
+  if (releaseTag == label){
+    println("Creating a new release")
+    scalaj.http.Http("https://api.github.com/repos/nh13/conda-env-builder/releases")
+      .postData(
+        ujson.write(
+          ujson.Obj(
+            "tag_name" -> releaseTag,
+            "name" -> releaseTag
+          )
+        )
+      )
+      .header("Authorization", "token " + authKey)
+      .asString
+  }
+
+  val jar  = tools.localJar().path
+  val dest = f"conda-env-builder-${label}.jar"
+  println(f"Uploading JAR $jar to $dest")
+  upload.apply(jar, releaseTag, dest, authKey)
 }
