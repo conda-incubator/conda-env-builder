@@ -14,8 +14,11 @@ jobs:
       matrix:
         java-version: [8, 11]
         buildcmd:
-          - ./mill tools.test
-          - ./mill tools.localJar
+          - ./mill --jobs 2 clean
+          - ./mill --jobs 2 --disable-ticker -s _.compile
+          - ./mill --jobs 2 --disable-ticker -s tools.test
+          - ./mill --jobs 2 --disable-ticker -s tools.scoverage.xmlReport
+          - ./mill --jobs 2 --disable-ticker -s tools.scoverage.htmlReport
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
