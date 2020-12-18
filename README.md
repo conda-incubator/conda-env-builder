@@ -1,6 +1,6 @@
 # conda-env-builder
 
-[![Build Status][travis-badge]][travis-link]
+[![Build Status][github-badge]][github-link]
 [![Code Coverage][codecov-badge]][codecov-link]
 [![Language][scala-badge]][scala-link]
 [![License][license-badge]][license-link]
@@ -12,8 +12,8 @@
 [scala-badge]:    https://img.shields.io/badge/language-scala-c22d40.svg
 [scala-link]:     https://www.scala-lang.org/
 [scalafmt-badge]: https://img.shields.io/badge/code_style-scalafmt-c22d40.svg
-[travis-badge]:   https://travis-ci.org/nh13/conda-env-builder.svg?branch=master
-[travis-link]:    https://travis-ci.org/nh13/conda-env-builder
+[github-badge]:   https://github.com/nh13/conda-env-builder/workflows/conda-env-builder%20unit%20tests/badge.svg
+[github-link]:    https://github.com/nh13/conda-env-builder/actions?query=workflow%3A%22conda-env-builder+unit+tests%22
 
 Build and maintain multiple custom conda environments all in once place.
 
