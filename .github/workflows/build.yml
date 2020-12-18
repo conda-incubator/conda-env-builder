@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java-version }}
-      - name: Run '${{ matrix.buildcmd }}'
+      - name: Unit Tests
         run: |
           git config --add user.name "Mill GithHub Actions"
           git config --add user.email "mill-ci@localhost"
@@ -31,23 +31,18 @@ jobs:
           ./mill --jobs 2 --disable-ticker -s tools.scoverage.xmlReport
           ./mill --jobs 2 --disable-ticker -s tools.scoverage.htmlReport
           bash <(curl -s https://codecov.io/bash) -c -F tools -f '!*.txt'
-      - name: Cache multiple paths
-        uses: actions/cache@v2
-        with:
-          path: |
-            - $HOME/.ivy2/cache
-            - $HOME/.cache/coursier
-            - $HOME/.cache/mill/download
+# FIXME
+#      - name: Cache multiple paths
+#        uses: actions/cache@v2
+#        with:
+#          path: |
+#            - $HOME/.ivy2/cache
+#            - $HOME/.cache/coursier
+#            - $HOME/.cache/mill/download
 
   release-github:
     if: github.repository == 'nh13/conda-env-builder' && github.ref == 'refs/heads/master'
     needs: test
-    strategy:
-      matrix:
-        buildcmd:
-          - if [ "$GITHUB_REPOSITORY" != "nh13/conda-env-builder"]; then echo "Wrong repo: $GITHUB_REPOSITORY"; exit 1; fi
-          - if [ "$GITHUB_REF" != "/master"]; then echo "Wrong branch: $GITHUB_REF"; exit 1; fi
-          - ./mill uploadToGithub $REPO_ACCESS_TOKEN
     runs-on: ubuntu-latest
     env:
       REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
@@ -58,4 +53,8 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: 8
-      - run: ${{ matrix.buildcmd }}
+      - name: Upload to Github
+        run: |
+          - if [ "$GITHUB_REPOSITORY" != "nh13/conda-env-builder"]; then echo "Wrong repo: $GITHUB_REPOSITORY"; exit 1; fi
+          - if [ "$GITHUB_REF" != "/master"]; then echo "Wrong branch: $GITHUB_REF"; exit 1; fi
+          - ./mill uploadToGithub $REPO_ACCESS_TOKEN
