@@ -80,12 +80,15 @@ class CondaStepTest extends UnitSpec {
     step.withDefaults(new DummyStep) shouldBe step
   }
 
-  it should "prepended default channels are to the current list of channels" in {
+  it should "append default channels are to the current list of channels" in {
     val step1 = CondaStep(channels=Seq("arg3", "arg4"))
     val step2 = CondaStep(channels=Seq("arg1", "arg2"))
+    val step3 = CondaStep(channels=Seq("arg4", "arg5"))
     step1.withDefaults(step1) shouldBe step1
-    step1.withDefaults(step2).channels should contain theSameElementsInOrderAs Seq("arg1", "arg2", "arg3", "arg4")
-    step2.withDefaults(step1).channels should contain theSameElementsInOrderAs Seq("arg3", "arg4", "arg1", "arg2")
+    step1.withDefaults(step2).channels should contain theSameElementsInOrderAs Seq("arg3", "arg4", "arg1", "arg2")
+    step2.withDefaults(step1).channels should contain theSameElementsInOrderAs Seq("arg1", "arg2", "arg3", "arg4")
+    step1.withDefaults(step3).channels should contain theSameElementsInOrderAs Seq("arg3", "arg4", "arg5")
+    step3.withDefaults(step1).channels should contain theSameElementsInOrderAs Seq("arg4", "arg5", "arg3")
   }
 
   it should "apply defaults to requirements with defaults" in {

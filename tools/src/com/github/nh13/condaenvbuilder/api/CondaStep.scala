@@ -25,7 +25,7 @@ case class CondaStep(channels: Seq[Channel]=Seq.empty, requirements: Seq[Require
       channels     = (steps.flatMap(_.channels) ++ this.channels).distinct)
   }
 
-  /** Applies (in-order) channels and requirements from the given step(s).  The default channels are prepended to the
+  /** Applies (in-order) requirements from the given step(s).  The default channels are appended (in-order) to the
     * current list of channels.  Any requirement that has a default version is updated (and must be present in the
     * default step).
     *
@@ -34,12 +34,12 @@ case class CondaStep(channels: Seq[Channel]=Seq.empty, requirements: Seq[Require
     */
   def withDefaults(requirementsMap: Map[String, Requirement], channels: Seq[Channel]): CondaStep = {
     this.copy(
-      channels     = (channels ++ this.channels).distinct,
+      channels     = (this.channels ++ channels).distinct,
       requirements = Requirement.withDefaults(requirements=this.requirements, defaultsMap=requirementsMap)
     )
   }
 
-  /** Applies the default step to this step.  The default channels are prepended to the current list of channels.  Any
+  /** Applies the default step to this step.  The default channels are appended to the current list of channels.  Any
     * requirement that has a default version is updated (and must be present in the default step).
     *
     * @param defaults the default step.
@@ -47,7 +47,7 @@ case class CondaStep(channels: Seq[Channel]=Seq.empty, requirements: Seq[Require
   def withDefaults(defaults: Step): CondaStep = defaults match {
     case _defaults: CondaStep =>
       this.copy(
-        channels     = (_defaults.channels ++ this.channels).distinct,
+        channels     = (this.channels ++ _defaults.channels).distinct,
         requirements = Requirement.withDefaults(requirements=this.requirements, defaults=_defaults.requirements),
       )
     case _ => this
