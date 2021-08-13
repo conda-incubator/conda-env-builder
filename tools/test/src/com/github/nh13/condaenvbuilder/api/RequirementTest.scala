@@ -105,6 +105,14 @@ class RequirementTest extends UnitSpec {
     logging should include ("Overriding parent requirement foo=1 with child requirement foo=2")
   }
 
+  it should "inherit the parent requirement when the child has a default requirement" in {
+    Requirement.join(
+      parent = Seq(Requirement("foo=1")),
+      child  = Seq(Requirement("foo")) // non-default
+    ) should contain theSameElementsInOrderAs Seq(Requirement("foo=1"))
+  }
+
+
   "Requirement.encoder" should "return an encoder" in {
     implicit val encoder: Encoder[Requirement] = Requirement.encoder
     Requirement("foo").asJson.toString shouldBe """"foo==default""""
