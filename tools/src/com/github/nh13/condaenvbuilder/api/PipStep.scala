@@ -21,7 +21,7 @@ case class PipStep(args: Seq[String]=Seq.empty, requirements: Seq[Requirement]=S
     // scope here.
     this.copy(
       args         = (args ++ steps.flatMap(_.args)).distinct,
-      requirements = Requirement.join(parent=requirements, child=steps.flatMap(_.requirements))
+      requirements = Requirement.join(parent=steps.flatMap(_.requirements), child=requirements)
     )
   }
 

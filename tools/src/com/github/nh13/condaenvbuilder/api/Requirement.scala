@@ -102,23 +102,39 @@ object Requirement extends LazyLogging {
 
   /** Merges the sequence of parent requirements with the sequence of child requirements.
     *
+    * Non-default child requirements override parent requirements for requirements with the same name.
+    *
+    *
     * First, child requirements with default versions are discarded if the parent has a requirement with the same name.
-    * Next, the parent and child requirements are concatenated and made unique.  If there are two requirements with the
-    * same name, an exception is thrown.
+    * Next, parent requirements who do not have the same name as the remaining child requirements are kept.
+    * Next, the remaining parent and child requirements are concatenated and made unique.
+    *
+    * After the above, if there are two or more requirements with the same name, a warning is logged.
     *
     * @param parent the parent sequence of requirements
     * @param child the child sequence of requirements
     * @return the merged sequence of requirements
     */
   def join(parent: Seq[Requirement], child: Seq[Requirement]): Seq[Requirement] = {
-    // find all requirements in the right list that have no version that are also in the left list
-    val childrenToExamine = child.filterNot { r =>
+    // find all child requirements that have no version that are also in the parent
+    val childrenRemaining = child.filterNot { r =>
       r.version == Requirement.DefaultVersion && parent.exists(_.name == r.name)
     }
-    // Developer note: consider at some in point in the future to do package version comparison.  For now, just log it
-    val requirements = (parent ++ childrenToExamine).distinct
+    // find all parent requirements that are not overridden by a remaining child requirement
+    val parentsRemaining = parent.filterNot { r =>
+      childrenRemaining.find(_.name == r.name) match {
+        case None        => false
+        case Some(child) =>
+          logger.warning(s"Overriding parent requirement $r with child requirement $child")
+          true
+      }
+    }
+    val requirements = (parentsRemaining ++ childrenRemaining).distinct
+
+    // Developer note: consider at some in point in the future to do package version comparison.  For now, just throw
+    // an exception.
     requirements.groupBy(_.name).iterator.filter(_._2.length > 1).foreach { case (name, pkgs) =>
-      logger.debug(f"Found ${pkgs.length} package versions for '$name'")
+      logger.warning(f"Found ${pkgs.length} package versions for '$name': " + pkgs.mkString(","))
     }
     requirements
   }

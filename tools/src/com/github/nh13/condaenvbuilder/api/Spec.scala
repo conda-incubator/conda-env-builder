@@ -150,9 +150,9 @@ object Spec {
     * @throws IllegalArgumentException if an environment that does not inherit cannot be found.
     */
   @tailrec
-  private def compile(specs: Seq[EnvironmentSpec],
-                      defaults: Seq[Step],
-                      environments: Seq[Environment]): Seq[Environment] = {
+  private[api] def compile(specs: Seq[EnvironmentSpec],
+                           defaults: Seq[Step],
+                           environments: Seq[Environment]): Seq[Environment] = {
     if (specs.isEmpty) environments else {
       specs.find(_.inherits.isEmpty) match {
         case None =>

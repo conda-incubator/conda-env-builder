@@ -100,8 +100,8 @@ class ToolsTest extends UnitSpec {
       |        - conda-forge
       |        - bioconda
       |        requirements:
-      |        - hisat2=2.2.0
       |        - samtools=1.9
+      |        - hisat2=2.2.0
       |  bwa:
       |    group: alignment
       |    steps:
@@ -110,8 +110,8 @@ class ToolsTest extends UnitSpec {
       |        - conda-forge
       |        - bioconda
       |        requirements:
-      |        - bwa=0.7.17
       |        - samtools=1.9
+      |        - bwa=0.7.17
       |  samtools:
       |    group: alignment
       |    steps:
@@ -125,10 +125,10 @@ class ToolsTest extends UnitSpec {
 
   val tabulatedString: String = {
     """group	name	value	source
-      |alignment	hisat2	hisat2=2.2.0	conda
       |alignment	hisat2	samtools=1.9	conda
-      |alignment	bwa	bwa=0.7.17	conda
+      |alignment	hisat2	hisat2=2.2.0	conda
       |alignment	bwa	samtools=1.9	conda
+      |alignment	bwa	bwa=0.7.17	conda
       |alignment	samtools	samtools=1.9	conda
       |conda-env-builder	conda-env-builder	pybedtools=0.8.1	conda
       |conda-env-builder	conda-env-builder	yaml=0.1.7	conda
@@ -159,8 +159,8 @@ class ToolsTest extends UnitSpec {
       |        - conda-forge
       |        - bioconda
       |        requirements:
-      |        - bwa=0.7.17
       |        - samtools=1.9
+      |        - bwa=0.7.17
       |  hisat2:
       |    group: alignment
       |    steps:
@@ -169,8 +169,8 @@ class ToolsTest extends UnitSpec {
       |        - conda-forge
       |        - bioconda
       |        requirements:
-      |        - hisat2=2.2.0
       |        - samtools=1.9
+      |        - hisat2=2.2.0
       |  conda-env-builder:
       |    group: conda-env-builder
       |    steps:
@@ -215,8 +215,8 @@ class ToolsTest extends UnitSpec {
       |        - conda-forge
       |        - bioconda
       |        requirements:
-      |        - bwa=0.7.17
       |        - samtools=1.9
+      |        - bwa=0.7.17
       |  hisat2:
       |    group: alignment
       |    steps:
@@ -225,8 +225,8 @@ class ToolsTest extends UnitSpec {
       |        - conda-forge
       |        - bioconda
       |        requirements:
-      |        - hisat2=2.2.0
       |        - samtools=1.9
+      |        - hisat2=2.2.0
       |  conda-env-builder:
       |    group: conda-env-builder
       |    steps:
@@ -440,8 +440,8 @@ class ToolsTest extends UnitSpec {
           |  - conda-forge
           |  - bioconda
           |dependencies:
-          |  - bwa=0.7.17
-          |  - samtools=1.9""".stripMargin
+          |  - samtools=1.9
+          |  - bwa=0.7.17""".stripMargin
       }
       Io.readLines(bwaCondaPath).mkString("\n") shouldBe {
         """#/bin/bash
