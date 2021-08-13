@@ -26,20 +26,6 @@ case class CondaStep(channels: Seq[Channel]=Seq.empty, requirements: Seq[Require
     )
   }
 
-  /** Applies (in-order) requirements from the given step(s).  The default channels are appended (in-order) to the
-    * current list of channels.  Any requirement that has a default version is updated (and must be present in the
-    * default step).
-    *
-    * @param requirementsMap mapping of package name to default requirement
-    * @param channels the default channels
-    */
-  def withDefaults(requirementsMap: Map[String, Requirement], channels: Seq[Channel]): CondaStep = {
-    this.copy(
-      channels     = (this.channels ++ channels).distinct,
-      requirements = Requirement.withDefaults(requirements=this.requirements, defaultsMap=requirementsMap)
-    )
-  }
-
   /** Applies the default step to this step.  The default channels are appended to the current list of channels.  Any
     * requirement that has a default version is updated (and must be present in the default step).
     *
