@@ -37,6 +37,15 @@ object CondaStepTest extends UnitSpec {
         |    "b==2"
         |  ]
         |}""".stripMargin
+    }),
+    // empty requirements, empty channels
+    (CondaStep(channels=Seq.empty, requirements=Seq.empty), {
+      """{
+        |  "channels" : [
+        |  ],
+        |  "requirements" : [
+        |  ]
+        |}""".stripMargin
     })
   )
 }

@@ -24,7 +24,6 @@ object CodeStepTest extends UnitSpec {
         |  ]
         |}""".stripMargin
     }),
-
     // multiple command
     (CodeStep(path="/root", "foo", "bar"), {
       """{
@@ -32,6 +31,14 @@ object CodeStepTest extends UnitSpec {
         |  "commands" : [
         |    "foo",
         |    "bar"
+        |  ]
+        |}""".stripMargin
+    }),
+    // no path, empty command
+    (CodeStep(path="."), {
+      """{
+        |  "path" : ".",
+        |  "commands" : [
         |  ]
         |}""".stripMargin
     })

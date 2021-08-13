@@ -37,6 +37,15 @@ object PipStepTest extends UnitSpec {
         |    "b==2"
         |  ]
         |}""".stripMargin
+    }),
+    // empty args, empty channels
+    (PipStep(args=Seq.empty, requirements=Seq.empty), {
+      """{
+        |  "args" : [
+        |  ],
+        |  "requirements" : [
+        |  ]
+        |}""".stripMargin
     })
   )
 }
