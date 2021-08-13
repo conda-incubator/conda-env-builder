@@ -66,13 +66,15 @@ class CondaStepTest extends UnitSpec {
   }
 
   it should "inherit from a step with requirements" in {
-    val step    = CondaStep(requirements=Seq("a==1", "b==2").reqs)
+    val step    = CondaStep(requirements=Seq("a==5", "b==2").reqs)
     val parent1 = CondaStep(requirements=Seq("c==3", "d==4").reqs)
     val parent2 = CondaStep(requirements=Seq("a==1", "d==4").reqs)
 
     step.inheritFrom(step) shouldBe step
-    step.inheritFrom(parent1).requirements should contain theSameElementsInOrderAs Seq("a==1", "b==2", "c==3", "d==4").reqs
-    step.inheritFrom(parent2).requirements should contain theSameElementsInOrderAs Seq("a==1", "b==2", "d==4").reqs
+    // distinct requirements, so inherit them all!
+    step.inheritFrom(parent1).requirements should contain theSameElementsInOrderAs Seq("c==3", "d==4", "a==5", "b==2").reqs
+    // overlapping requirements, keep child
+    step.inheritFrom(parent2).requirements should contain theSameElementsInOrderAs Seq("d==4", "a==5", "b==2").reqs
   }
 
   "CondaStep.withDefaults" should "ignore non-conda steps" in {

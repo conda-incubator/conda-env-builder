@@ -86,8 +86,15 @@ class RequirementTest extends UnitSpec {
     ) should contain theSameElementsInOrderAs Seq(Requirement("foo=1"))
   }
 
-  it should "log at debug level if there are two requirements for the same package" in {
-    Logger.level = LogLevel.Debug
+  it should "override parent requirements with a non-default child requirement with the same name" in {
+    Requirement.join(
+      parent = Seq(Requirement("foo=1")),
+      child  = Seq(Requirement("foo=2"))
+    ) should contain theSameElementsInOrderAs Seq(Requirement("foo=2"))
+  }
+
+  it should "log at warning level if there are two requirements for the same package" in {
+    Logger.level = LogLevel.Warning
     val logging: LoggerString = captureLogger { () =>
       Requirement.join(
         parent = Seq(Requirement("foo=1")),
@@ -95,8 +102,16 @@ class RequirementTest extends UnitSpec {
       )
     }
     Logger.level = LogLevel.Info
-    logging should include ("Found 2 package versions for 'foo'")
+    logging should include ("Overriding parent requirement foo=1 with child requirement foo=2")
   }
+
+  it should "inherit the parent requirement when the child has a default requirement" in {
+    Requirement.join(
+      parent = Seq(Requirement("foo=1")),
+      child  = Seq(Requirement("foo")) // non-default
+    ) should contain theSameElementsInOrderAs Seq(Requirement("foo=1"))
+  }
+
 
   "Requirement.encoder" should "return an encoder" in {
     implicit val encoder: Encoder[Requirement] = Requirement.encoder

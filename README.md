@@ -474,10 +474,10 @@ Below is the output from the example YAML
 
 ```
 group              name               value                       source
-alignment          hisat2             hisat2=2.2.0                conda
 alignment          hisat2             samtools=1.9                conda
-alignment          bwa                bwa=0.7.17                  conda
+alignment          hisat2             hisat2=2.2.0                conda
 alignment          bwa                samtools=1.9                conda
+alignment          bwa                bwa=0.7.17                  conda
 alignment          samtools           samtools=1.9                conda
 conda-env-builder  conda-env-builder  pybedtools=0.8.1            conda
 conda-env-builder  conda-env-builder  yaml=0.1.7                  conda
