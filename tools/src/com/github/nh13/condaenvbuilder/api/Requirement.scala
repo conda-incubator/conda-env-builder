@@ -131,8 +131,8 @@ object Requirement extends LazyLogging {
     }
     val requirements = (parentsRemaining ++ childrenRemaining).distinct
 
-    // Developer note: consider at some in point in the future to do package version comparison.  For now, just throw
-    // an exception.
+    // Developer note: consider at some in point in the future to do package version comparison.  For now, just log
+    // a warning
     requirements.groupBy(_.name).iterator.filter(_._2.length > 1).foreach { case (name, pkgs) =>
       logger.warning(f"Found ${pkgs.length} package versions for '$name': " + pkgs.mkString(","))
     }
