@@ -86,12 +86,20 @@ class CondaStepTest extends UnitSpec {
     step.inheritFrom(parent2).requirements should contain theSameElementsInOrderAs Seq("d==4", "a==5", "b==2").reqs
   }
 
+  it should "prepend inherited channel, even when the parent has default channels applied" in {
+    val defaults = CondaStep(channels=Seq("c1"))
+    val parent   = CondaStep(channels=Seq.empty)
+    val child    = CondaStep(channels=Seq("c2"))
+
+    child.inheritFrom(parent.withDefaults(defaults)).channels should contain theSameElementsInOrderAs Seq("c1", "c2")
+  }
+
   "CondaStep.withDefaults" should "ignore non-conda steps" in {
     val step = CondaStep()
     step.withDefaults(new DummyStep) shouldBe step
   }
 
-  it should "append default channels are to the current list of channels" in {
+  it should "append default channels to the current list of channels" in {
     val step1 = CondaStep(channels=Seq("arg3", "arg4"))
     val step2 = CondaStep(channels=Seq("arg1", "arg2"))
     val step3 = CondaStep(channels=Seq("arg4", "arg5"))
