@@ -21,8 +21,8 @@ case class CondaStep(channels: Seq[Channel]=Seq.empty, requirements: Seq[Require
   override def inheritFrom(step: Step*): CondaStep = {
     val steps = step.collect { case s: CondaStep => s }
     this.copy(
+      channels     = (steps.flatMap(_.channels) ++ this.channels).distinct,
       requirements = Requirement.join(parent=steps.flatMap(_.requirements), child=requirements),
-      channels     = (steps.flatMap(_.channels) ++ this.channels).distinct
     )
   }
 
