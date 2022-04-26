@@ -177,8 +177,8 @@ case class BuildWriter(environment: Environment,
         writer.println(f"# Activate conda environment: ${environment.name}")
         writer.println("set +eu")  // because of unbound variables
         writer.println("PS1=dummy\n")  // for sourcing
-        writer.println(f". $$($condaExecutable info --base | tail -n 1)/etc/profile.d/conda.sh") // tail to ignore mamba header
-        writer.println(f"$condaExecutable activate ${environment.name}")
+        writer.println(f". $$(conda info --base | tail -n 1)/etc/profile.d/conda.sh") // tail to ignore mamba header
+        writer.println(f"conda activate ${environment.name}")
         writer.println()
         writer.println("set -eu") //
         writer.println(f"pushd $${repo_root}")
