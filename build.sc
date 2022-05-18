@@ -32,7 +32,7 @@ trait ScalaTest extends TestModule {
   )
 
   /** Test frameworks. */
-  override def testFrameworks: Target[Seq[String]] = Seq("org.scalatest.tools.Framework")
+  override def testFramework: Target[String] = "org.scalatest.tools.Framework"
 
   /** Run a single test with `scalatest`. */
   def testOne(args: String*): mill.define.Command[Unit] = T.command {
@@ -101,7 +101,7 @@ trait ReleaseModule extends ScalaModule {
 /** The common module mixin for all of our projects. */
 trait CommonModule extends ScalaModule with ReleaseModule with ScoverageModule {
   def scalaVersion     = "2.13.1"
-  def scoverageVersion = "1.4.1"
+  def scoverageVersion = "1.4.11"
 
   override def repositories: Seq[coursier.Repository] = super.repositories ++ Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/public"),
