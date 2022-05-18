@@ -1,5 +1,4 @@
 #!/usr/bin/env amm
-import ammonite.ops._
 import scalaj.http._
 
 @main
@@ -14,7 +13,7 @@ def shorten(longUrl: String) = {
   shortUrl
 }
 @main
-def apply(uploadedFile: Path,
+def apply(uploadedFile: os.Path,
           tagName: String,
           uploadName: String,
           authKey: String): String = {
@@ -40,7 +39,7 @@ def apply(uploadedFile: Path,
     .header("Content-Type", "application/octet-stream")
     .header("Authorization", "token " + authKey)
     .timeout(connTimeoutMs = 5000, readTimeoutMs = 60000)
-    .postData(read.bytes! uploadedFile)
+    .postData(os.read.bytes(uploadedFile))
     .asString
 
   println(res.body)

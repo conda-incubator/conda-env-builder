@@ -3,7 +3,7 @@ import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $file.ci.upload
 import java.util.jar.Attributes.Name.{IMPLEMENTATION_VERSION => ImplementationVersion}
 
-import ammonite.ops._
+//import ammonite.ops._
 import coursier.maven.MavenRepository
 import mill._
 import mill.api.Loose
@@ -32,7 +32,7 @@ trait ScalaTest extends TestModule {
   )
 
   /** Test frameworks. */
-  override def testFrameworks: Target[Seq[String]] = Seq("org.scalatest.tools.Framework")
+  override def testFramework: Target[String] = "org.scalatest.tools.Framework"
 
   /** Run a single test with `scalatest`. */
   def testOne(args: String*): mill.define.Command[Unit] = T.command {
@@ -44,7 +44,8 @@ trait ScalaTest extends TestModule {
 trait ReleaseModule extends ScalaModule {
 
   /** Execute Git arguments and return the standard output. */
-  private def git(args: String*): String = %%("git", args)(pwd).out.string.trim
+  private def git(args: String*): String = os.proc("git", args).call().out.string.trim
+
 
   /** Get the commit hash at the HEAD of this branch. */
   def gitHead: String = git("rev-parse", "HEAD")
@@ -88,7 +89,7 @@ trait ReleaseModule extends ScalaModule {
 
   /** POM Settings. */
   def pomSettings: T[PomSettings] = PomSettings(
-    description    = "TODO",
+    description    = "Build and maintain multiple custom conda environments all in once place.",
     organization   = "com.github.nh13.condanevbuilder",
     url            = "https://github.com/nh13/conda-env-builder",
     licenses       = Seq(License.MIT),
@@ -100,7 +101,7 @@ trait ReleaseModule extends ScalaModule {
 /** The common module mixin for all of our projects. */
 trait CommonModule extends ScalaModule with ReleaseModule with ScoverageModule {
   def scalaVersion     = "2.13.1"
-  def scoverageVersion = "1.4.1"
+  def scoverageVersion = "1.4.11"
 
   override def repositories: Seq[coursier.Repository] = super.repositories ++ Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/public"),
@@ -110,9 +111,10 @@ trait CommonModule extends ScalaModule with ReleaseModule with ScoverageModule {
   )
 
   def localJar(assembly: PathRef, jarName: String): PathRef= {
-    mkdir(pwd / 'jars)
-    cp.over(assembly.path, pwd / 'jars / jarName)
-    PathRef(pwd / 'jars / jarName)
+    os.makeDir.all(os.pwd / 'jars)
+    println(s"Copying artifact ${assembly.path} to jars / $jarName")
+    os.copy(assembly.path, os.pwd / 'jars / jarName, replaceExisting=true)
+    PathRef(os.pwd / 'jars / jarName)
   }
 
   def testModulesDeps: Seq[TestModule] = Nil
@@ -144,7 +146,8 @@ object tools extends CommonModule {
   )
 
   /** Build a JAR file from the com.github.nh13.condaenvbuilder.tools project. */
-  def localJar = T { super.localJar(assembly(), jarName = "conda-env-builder.jar") }
+  def localJar = T { super.localJar(assembly(), "conda-env-builder.jar") }
+
 }
 
 def publishVersion = T.input {
