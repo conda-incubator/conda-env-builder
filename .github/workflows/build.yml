@@ -21,6 +21,8 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java-version }}
+      - name: Save cache
+        uses: coursier/cache-action@v6.3.0
       - name: Unit Tests
         run: |
           git config --add user.name "Mill GithHub Actions"
@@ -31,14 +33,6 @@ jobs:
           ./mill --jobs 2 --disable-ticker -s tools.scoverage.xmlReport
           ./mill --jobs 2 --disable-ticker -s tools.scoverage.htmlReport
           bash <(curl -s https://codecov.io/bash) -c -F tools -f '!*.txt'
-# FIXME
-#      - name: Cache multiple paths
-#        uses: actions/cache@v2
-#        with:
-#          path: |
-#            - $HOME/.ivy2/cache
-#            - $HOME/.cache/coursier
-#            - $HOME/.cache/mill/download
 
   release-github:
     if: github.repository == 'nh13/conda-env-builder' && github.ref == 'refs/heads/master'
