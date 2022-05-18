@@ -2,17 +2,6 @@
 import scalaj.http._
 
 @main
-def shorten(longUrl: String) = {
-  println("shorten longUrl " + longUrl)
-  val shortUrl = Http("https://git.io")
-    .postForm(Seq("url" -> longUrl))
-    .asString
-    .headers("Location")
-    .head
-  println("shorten shortUrl " + shortUrl)
-  shortUrl
-}
-@main
 def apply(uploadedFile: os.Path,
           tagName: String,
           uploadName: String,
@@ -47,8 +36,6 @@ def apply(uploadedFile: os.Path,
 
   println("Long Url " + longUrl)
 
-  val shortUrl = shorten(longUrl)
 
-  println("Short Url " + shortUrl)
-  shortUrl
+  longUrl
 }
