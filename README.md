@@ -5,10 +5,10 @@
 [![Language][scala-badge]][scala-link]
 [![License][license-badge]][license-link]
 
-[codecov-badge]:  https://codecov.io/gh/nh13/conda-env-builder/branch/master/graph/badge.svg
+[codecov-badge]:  https://codecov.io/gh/nh13/conda-env-builder/branch/main/graph/badge.svg
 [codecov-link]:   https://codecov.io/gh/nh13/conda-env-builder
 [license-badge]:  https://img.shields.io/badge/license-MIT-blue.svg
-[license-link]:   https://github.com/nh13/conda-env-builder/blob/master/LICENSE
+[license-link]:   https://github.com/nh13/conda-env-builder/blob/main/LICENSE
 [scala-badge]:    https://img.shields.io/badge/language-scala-c22d40.svg
 [scala-link]:     https://www.scala-lang.org/
 [scalafmt-badge]: https://img.shields.io/badge/code_style-scalafmt-c22d40.svg
