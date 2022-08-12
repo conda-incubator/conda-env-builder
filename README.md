@@ -4,22 +4,26 @@
 [![Code Coverage][codecov-badge]][codecov-link]
 [![Language][scala-badge]][scala-link]
 [![License][license-badge]][license-link]
+[![Conda Version][conda-badge]][conda-anaconda-link]
 
-[codecov-badge]:  https://codecov.io/gh/nh13/conda-env-builder/branch/main/graph/badge.svg
-[codecov-link]:   https://codecov.io/gh/nh13/conda-env-builder
-[license-badge]:  https://img.shields.io/badge/license-MIT-blue.svg
-[license-link]:   https://github.com/nh13/conda-env-builder/blob/main/LICENSE
-[scala-badge]:    https://img.shields.io/badge/language-scala-c22d40.svg
-[scala-link]:     https://www.scala-lang.org/
-[scalafmt-badge]: https://img.shields.io/badge/code_style-scalafmt-c22d40.svg
-[github-badge]:   https://github.com/nh13/conda-env-builder/workflows/conda-env-builder%20unit%20tests/badge.svg
-[github-link]:    https://github.com/nh13/conda-env-builder/actions?query=workflow%3A%22conda-env-builder+unit+tests%22
+
+[codecov-badge]:       https://codecov.io/gh/nh13/conda-env-builder/branch/main/graph/badge.svg
+[codecov-link]:        https://codecov.io/gh/nh13/conda-env-builder
+[license-badge]:       https://img.shields.io/badge/license-MIT-blue.svg
+[license-link]:        https://github.com/nh13/conda-env-builder/blob/main/LICENSE
+[scala-badge]:         https://img.shields.io/badge/language-scala-c22d40.svg
+[scala-link]:          https://www.scala-lang.org/
+[scalafmt-badge]:      https://img.shields.io/badge/code_style-scalafmt-c22d40.svg
+[github-badge]:        https://github.com/nh13/conda-env-builder/workflows/conda-env-builder%20unit%20tests/badge.svg
+[github-link]:         https://github.com/nh13/conda-env-builder/actions?query=workflow%3A%22conda-env-builder+unit+tests%22
+[conda-badge]:         https://img.shields.io/conda/vn/conda-forge/conda-env-builder.svg
+[conda-anaconda-link]: https://anaconda.org/conda-forge/conda-env-builder
+
 
 Build and maintain multiple custom conda environments all in once place.
 
-** Coming to bioconda soon **
-
 <!---toc start-->
+  * [Installation](#installation)
   * [Goals](#goals)
   * [Overview](#overview)
   * [List of tools](#list-of-tools)
@@ -39,6 +43,14 @@ Build and maintain multiple custom conda environments all in once place.
 ---
 
 <!---toc end-->
+
+## Installation
+
+[![Conda Recipe](https://img.shields.io/badge/recipe-conda--env--builder-green.svg)](https://anaconda.org/conda-forge/conda-env-builder) 
+
+Install with [`conda`](https://conda.io/projects/conda/en/latest/index.html): `conda install --channel conda-forge conda-env-builder`.
+
+
 
 ## Goals
 
