@@ -90,10 +90,10 @@ trait ReleaseModule extends ScalaModule {
   /** POM Settings. */
   def pomSettings: T[PomSettings] = PomSettings(
     description    = "Build and maintain multiple custom conda environments all in once place.",
-    organization   = "com.github.nh13.condanevbuilder",
-    url            = "https://github.com/nh13/conda-env-builder",
+    organization   = "com.github.conda-incubator.condanevbuilder",
+    url            = "https://github.com/conda-incubator/conda-env-builder",
     licenses       = Seq(License.MIT),
-    versionControl = VersionControl.github(owner = "nh13", repo = "conda-env-builder"),
+    versionControl = VersionControl.github(owner = "conda-incubator", repo = "conda-env-builder"),
     developers     = Seq(Developer("nh13", "Nils Homer", "https://github.com/nh13"))
   )
 }
@@ -145,7 +145,7 @@ object tools extends CommonModule {
     ivy"org.slf4j:slf4j-nop:1.7.6"  // For logging silence: https://www.slf4j.org/codes.html#StaticLoggerBinder
   )
 
-  /** Build a JAR file from the com.github.nh13.condaenvbuilder.tools project. */
+  /** Build a JAR file from the com.github.conda-incubator.condaenvbuilder.tools project. */
   def localJar = T { super.localJar(assembly(), "conda-env-builder.jar") }
 
 }
@@ -174,7 +174,7 @@ def uploadToGithub(authKey: String) = T.command {
   // Determine if we should make a new release, or not
   if (releaseTag == label){
     println("Creating a new release")
-    scalaj.http.Http("https://api.github.com/repos/nh13/conda-env-builder/releases")
+    scalaj.http.Http("https://api.github.com/repos/conda-incubator/conda-env-builder/releases")
       .postData(
         ujson.write(
           ujson.Obj(

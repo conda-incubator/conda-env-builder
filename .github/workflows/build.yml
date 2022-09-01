@@ -35,7 +35,7 @@ jobs:
           bash <(curl -s https://codecov.io/bash) -c -F tools -f '!*.txt'
 
   release-github:
-    if: github.repository == 'nh13/conda-env-builder' && github.ref == 'refs/heads/main'
+    if: github.repository == 'conda-incubator/conda-env-builder' && github.ref == 'refs/heads/main'
 
     needs: test
     runs-on: ubuntu-latest

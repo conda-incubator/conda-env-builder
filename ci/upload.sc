@@ -7,7 +7,7 @@ def apply(uploadedFile: os.Path,
           uploadName: String,
           authKey: String): String = {
 
-  val response = Http(s"https://api.github.com/repos/nh13/conda-env-builder/releases/tags/${tagName}")
+  val response = Http(s"https://api.github.com/repos/conda-incubator/conda-env-builder/releases/tags/${tagName}")
     .header("Authorization", "token " + authKey)
     .header("Accept", "application/vnd.github.v3+json")
     .asString
@@ -21,7 +21,7 @@ def apply(uploadedFile: os.Path,
   val snapshotReleaseId = parsed("id").num.toInt
 
   val uploadUrl =
-    s"https://uploads.github.com/repos/nh13/conda-env-builder/releases/" +
+    s"https://uploads.github.com/repos/conda-incubator/conda-env-builder/releases/" +
       s"$snapshotReleaseId/assets?name=$uploadName"
 
   val res = Http(uploadUrl)
