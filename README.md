@@ -6,16 +6,15 @@
 [![License][license-badge]][license-link]
 [![Conda Version][conda-badge]][conda-anaconda-link]
 
-
-[codecov-badge]:       https://codecov.io/gh/nh13/conda-env-builder/branch/main/graph/badge.svg
-[codecov-link]:        https://codecov.io/gh/nh13/conda-env-builder
+[codecov-badge]:       https://codecov.io/gh/conda-incubator/conda-env-builder/branch/main/graph/badge.svg
+[codecov-link]:        https://codecov.io/gh/conda-incubator/conda-env-builder
 [license-badge]:       https://img.shields.io/badge/license-MIT-blue.svg
-[license-link]:        https://github.com/nh13/conda-env-builder/blob/main/LICENSE
+[license-link]:        https://github.com/conda-incubator/conda-env-builder/blob/main/LICENSE
 [scala-badge]:         https://img.shields.io/badge/language-scala-c22d40.svg
 [scala-link]:          https://www.scala-lang.org/
 [scalafmt-badge]:      https://img.shields.io/badge/code_style-scalafmt-c22d40.svg
-[github-badge]:        https://github.com/nh13/conda-env-builder/workflows/conda-env-builder%20unit%20tests/badge.svg
-[github-link]:         https://github.com/nh13/conda-env-builder/actions?query=workflow%3A%22conda-env-builder+unit+tests%22
+[github-badge]:        https://github.com/conda-incubator/conda-env-builder/workflows/conda-env-builder%20unit%20tests/badge.svg
+[github-link]:         https://github.com/conda-incubator/conda-env-builder/actions?query=workflow%3A%22conda-env-builder+unit+tests%22
 [conda-badge]:         https://img.shields.io/conda/vn/conda-forge/conda-env-builder.svg
 [conda-anaconda-link]: https://anaconda.org/conda-forge/conda-env-builder
 
@@ -554,7 +553,7 @@ RUN find /tmp/environments -name '*.build-local.sh' -print0 | xargs -0 -n 1 -I '
 ## Building 
 ### Cloning the Repository
 
-To clone the repository: `git clone https://github.com/nh13/conda-env-builder.git`
+To clone the repository: `git clone https://github.com/conda-incubator/conda-env-builder.git`
 
 ### Running the build
 conda-env-builder is built using [mill](http://www.lihaoyi.com/mill/).
@@ -569,24 +568,6 @@ Java SE 8 is required.
 
 `java -jar jars/conda-env-builder.jar` to see the commands supported.  Use `java -jar jars/conda-env-builder.jar <command>` to see the help message for a particular command.
 
-## Include in your project
-
-** Coming Soon **
-
-You can include `conda-env-builder` in your project using:
-
-```
-"com.github.nh13" %% "conda-env-builder" % "0.0.1"
-```
-
-for the latest released version or (buyer beware):
-
-```
-"com.github.nh13" %% "conda-env-builder" % "0.0.0-<commit-hash>-SNAPSHOT"
-```
-
-for the latest development snapshot.
-
 ## Contributing
 
 Contributions are welcome and encouraged.
@@ -599,4 +580,4 @@ For urgent matters, please contact us directly.
 
 ## License
 
-`conda-env-builder` is open source software released under the [MIT License](https://github.com/nh13/conda-env-builder/blob/master/LICENSE).
+`conda-env-builder` is open source software released under the [MIT License](https://github.com/conda-incubator/conda-env-builder/blob/master/LICENSE).
