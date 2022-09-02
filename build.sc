@@ -145,7 +145,7 @@ object tools extends CommonModule {
     ivy"org.slf4j:slf4j-nop:1.7.6"  // For logging silence: https://www.slf4j.org/codes.html#StaticLoggerBinder
   )
 
-  /** Build a JAR file from the com.github.conda-incubator.condaenvbuilder.tools project. */
+  /** Build a JAR file from the com.github.condaincubator.condaenvbuilder.tools project. */
   def localJar = T { super.localJar(assembly(), "conda-env-builder.jar") }
 
 }
