@@ -55,6 +55,9 @@ class SpecTest extends UnitSpec with OptionValues {
         group = ""
       ))
 
+      // validate we find the components correctly
+      Spec.findConnectedComponents(Seq(parent, child)) contains theSameElementsInOrderAs(Seq(IndexedSeq(parent, child)))
+
       val ex = intercept[IllegalArgumentException] {
         Spec.compile(
           specs        = Seq(parent, child),
@@ -86,6 +89,11 @@ class SpecTest extends UnitSpec with OptionValues {
         group = ""
       ))
 
+      // validate we find the components correctly
+      Spec.findConnectedComponents(Seq(parent, child, grandchild)) contains theSameElementsInOrderAs(Seq(
+        IndexedSeq(parent, child, grandchild))
+      )
+
       val ex = intercept[IllegalArgumentException] {
         Spec.compile(
           specs        = Seq(parent, child, grandchild),
@@ -96,5 +104,29 @@ class SpecTest extends UnitSpec with OptionValues {
 
       ex.getMessage should include ("Found a cyclical dependency in the environment inheritance")
     }
+  }
+
+  it should "throw an exception when an environment inherits from a non-existent environment" in {
+    val foo = EnvironmentSpec(inherits = Seq.empty, environment = Environment(
+      name  = "foo",
+      steps = Seq(api.CondaStep(requirements = Seq("foo").reqs)),
+      group = "",
+    ))
+
+    val bar = EnvironmentSpec(inherits = Seq("blah"), environment = Environment(
+      name  = "bar",
+      steps = Seq(api.CondaStep(requirements = Seq("bar=1.2").reqs)),
+      group = ""
+    ))
+
+    val ex = intercept[IllegalArgumentException] {
+      Spec.compile(
+        specs        = Seq(foo, bar),
+        defaults     = Seq.empty,
+        environments = Seq.empty
+      )
+    }
+
+    ex.getMessage should include ("The environment 'bar' inherits from a non-exist environment: 'blah'")
   }
 }
