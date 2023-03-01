@@ -1,16 +1,19 @@
 package com.github.condaincubator.condaenvbuilder.api
 
-import CondaStep.Channel
+import com.github.condaincubator.condaenvbuilder.api.CondaStep.Channel
+import com.github.condaincubator.condaenvbuilder.api.Platform.Platform
 import io.circe.Decoder.Result
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder, HCursor, Json}
+
+import scala.collection.mutable.ArrayBuffer
 
 /** Specifies the conda channels and requirements for a conda environment.
   *
   * @param channels the conda channels, in priority order
   * @param requirements the package requirements.
   */
-case class CondaStep(channels: Seq[Channel]=Seq.empty, requirements: Seq[Requirement]=Seq.empty) extends StepWithDefaults {
+case class CondaStep(channels: Seq[Channel]=Seq.empty, requirements: Seq[Requirement]=IndexedSeq.empty, platforms: Seq[Platform]=IndexedSeq.empty) extends StepWithDefaults {
 
   /** Inherit (in-order) channels and requirements from the given step(s).
     *
@@ -23,6 +26,7 @@ case class CondaStep(channels: Seq[Channel]=Seq.empty, requirements: Seq[Require
     this.copy(
       channels     = (steps.flatMap(_.channels) ++ this.channels).distinct,
       requirements = Requirement.join(parent=steps.flatMap(_.requirements), child=requirements),
+      platforms    = (steps.flatMap(_.platforms) ++ this.platforms).distinct,
     )
   }
 
@@ -36,6 +40,7 @@ case class CondaStep(channels: Seq[Channel]=Seq.empty, requirements: Seq[Require
       this.copy(
         channels     = (this.channels ++ _defaults.channels).distinct,
         requirements = Requirement.withDefaults(requirements=this.requirements, defaults=_defaults.requirements),
+        platforms    = (this.platforms ++ _defaults.platforms).distinct,
       )
     case _ => this
   }
@@ -50,6 +55,10 @@ case class CondaStep(channels: Seq[Channel]=Seq.empty, requirements: Seq[Require
   *     requirements:
   *       - samtools
   *       - fgbio=1.1.0
+ *      platforms:
+ *        - linux-32
+ *        - osx-arm64
+ *        - win32
   * }}}
   *
   * Both `channels` and `requirements` are optional.
@@ -63,10 +72,13 @@ object CondaStep {
 
   /** Returns an YAML encoder for [[CondaStep]] */
   def encoder: Encoder[CondaStep] = new Encoder[CondaStep] {
-    final def apply(step: CondaStep): Json = Json.obj(
-      ("channels", Json.fromValues(step.channels.map(_.asJson))),
-      ("requirements", Json.fromValues(step.requirements.map(_.asJson)))
-    )
+    final def apply(step: CondaStep): Json = {
+      val fields = ArrayBuffer[(String, Json)]()
+      fields.append(("channels", Json.fromValues(step.channels.map(_.asJson))))
+      fields.append(("requirements", Json.fromValues(step.requirements.map(_.asJson))))
+      if (step.platforms.nonEmpty) fields.append(("platforms", Json.fromValues(step.platforms.map(_.asJson))))
+      Json.obj(fields.toSeq:_*)
+    }
   }
 
   /** Returns a YAML decoder for [[CondaStep]] */
@@ -86,11 +98,17 @@ object CondaStep {
         else Right(Seq.empty)
       }
 
+      val platformResults: Result[Seq[Platform]] = {
+        if (keys.contains("platforms")) c.downField("platforms").as[Seq[Platform]]
+        else Right(Seq.empty)
+      }
+
       for {
         channels <- channelsResults
         requirements <- requirementsResults
+        platforms <- platformResults
       } yield {
-        CondaStep(channels=channels, requirements=requirements)
+        CondaStep(channels=channels, requirements=requirements, platforms=platforms)
       }
     }
   }
