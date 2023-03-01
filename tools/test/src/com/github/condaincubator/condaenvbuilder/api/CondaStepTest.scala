@@ -15,19 +15,22 @@ object CondaStepTest extends UnitSpec {
         |  ]
         |}""".stripMargin
     }),
-    // one channel, one requirement
-    (api.CondaStep(channels=Seq("some channel"), requirements=Seq("a==1").reqs), {
+    // one channel, one requirement, one platform
+    (api.CondaStep(channels=Seq("some channel"), requirements=Seq("a==1").reqs, platforms=Seq("linux-32")), {
       """{
         |  "channels" : [
         |    "some channel"
         |  ],
         |  "requirements" : [
         |    "a==1"
+        |  ],
+        |  "platforms" : [
+        |    "linux-32"
         |  ]
         |}""".stripMargin
     }),
-    // multiple channels and requirements
-    (api.CondaStep(channels=Seq("channel 1", "channel 2"), requirements=Seq("a==1", "b==2").reqs), {
+    // multiple channels, requirements, and platforms
+    (api.CondaStep(channels=Seq("channel 1", "channel 2"), requirements=Seq("a==1", "b==2").reqs, platforms=Seq("linux-32", "win-32")), {
       """{
         |  "channels" : [
         |    "channel 1",
@@ -36,11 +39,15 @@ object CondaStepTest extends UnitSpec {
         |  "requirements" : [
         |    "a==1",
         |    "b==2"
+        |  ],
+        |  "platforms" : [
+        |    "linux-32",
+        |    "win-32"
         |  ]
         |}""".stripMargin
     }),
     // empty requirements, empty channels
-    (CondaStep(channels=Seq.empty, requirements=Seq.empty), {
+    (CondaStep(channels=Seq.empty, requirements=Seq.empty, platforms=Seq.empty), {
       """{
         |  "channels" : [
         |  ],
