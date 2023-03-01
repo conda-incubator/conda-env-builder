@@ -21,7 +21,6 @@ private val fgSoptVersion             = "1.1.0-e565813-SNAPSHOT"
 private val circeYamlVersion          = "0.13.0"
 private val circeGenericVersion       = "0.13.0"
 private val circeGenericExtrasVersion = "0.13.0"
-private val enumeratumVersion         = "1.7.2"
 
 /** The ScalaTest settings. */
 trait ScalaTest extends TestModule {
@@ -143,7 +142,6 @@ object tools extends CommonModule {
     ivy"io.circe::circe-yaml::$circeYamlVersion",
     ivy"io.circe::circe-generic::$circeGenericVersion",
     ivy"io.circe::circe-generic-extras::$circeGenericExtrasVersion",
-    ivy"com.beachape::enumeratum::$enumeratumVersion",
     ivy"org.slf4j:slf4j-nop:1.7.6"  // For logging silence: https://www.slf4j.org/codes.html#StaticLoggerBinder
   )
 
