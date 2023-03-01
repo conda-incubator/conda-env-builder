@@ -156,8 +156,36 @@ object Spec {
     if (specs.isEmpty) environments else {
       specs.find(_.inherits.isEmpty) match {
         case None =>
-          // Developer note: could provide a better error message by finding the cycle
-          throw new IllegalArgumentException("Found a cyclical dependency in the environment inheritance.")
+          // NB: there are two possibilities here:
+          // 1. There's an environment that inherits from a non-existent environment
+          // 2. There's a cyclical dependency in the environment inheritance
+
+          // 1. Find a spec that inherits from a non-existent environment
+          val environmentNames = (specs.iterator.map(_.environment) ++ environments.iterator).map(_.name).toSet
+          specs.foreach { spec =>
+            spec.inherits.foreach { name =>
+              if (!environmentNames.contains(name)) {
+                throw new IllegalArgumentException(
+                  s"The environment '${spec.environment.name}' inherits from a non-exist environment: '$name'"
+                )
+              }
+            }
+          }
+
+          // 2. Find a cyclical inheritance
+          val components = findConnectedComponents(specs)
+          if (components.isEmpty) {
+            throw new IllegalStateException("Bug: expected connected components, but did not find any, please report.")
+          } else {
+            val componentsString = components.map { component =>
+              // NB: make sure to append the first spec to show the full cycle
+              "\tcycle: " +
+                (component :+ component.head).map(spec => s"'${spec.environment.name}'").mkString(" inherits from ")
+            }.mkString("\n")
+            throw new IllegalArgumentException(
+              s"Found a cyclical dependency in the environment inheritance:\n$componentsString"
+            )
+          }
         case Some(spec) =>
           // Apply the defaults, if given, to the spec's environments
           val newEnvironment = if (defaults.isEmpty) spec.environment else spec.environment.withDefaults(defaults: _*)
@@ -169,5 +197,38 @@ object Spec {
           compile(defaults=defaults, specs=otherSpecs, environments=newEnvironment +: environments)
       }
     }
+  }
+
+  private[api] def findConnectedComponents(specs: Seq[EnvironmentSpec]): Seq[IndexedSeq[EnvironmentSpec]] = {
+    val specToInherits = specs.map { spec => spec -> spec.inherits }.toMap
+    val envNameToSpec  = specs.map { spec => spec.environment.name -> spec }.toMap
+
+    // The following finds connected components in a breadth first manner
+    val visited    = scala.collection.mutable.HashSet[EnvironmentSpec]()
+    val components = IndexedSeq.newBuilder[IndexedSeq[EnvironmentSpec]]
+    specs.foreach { rootSpec =>
+      if (!visited.contains(rootSpec)) {
+        val remaining = scala.collection.mutable.Queue[EnvironmentSpec]()
+        val component = Set.newBuilder[EnvironmentSpec]
+        remaining.enqueue(rootSpec)
+        while (remaining.nonEmpty) {
+          // get the next pileup to examine
+          val curSpec = remaining.dequeue()
+          // add it to this component
+          component += curSpec
+          // find all unvisited neighbors
+          val unvisited = specToInherits(curSpec).map(envNameToSpec(_)).filterNot(visited.contains)
+          // add the unvisited neighbors to the queue
+          remaining ++= unvisited
+          // mark the unvisited neighbors as being visited so we don't enqueue them later
+          unvisited.foreach(visited.add)
+          // mark this pileup as visited
+          visited.add(curSpec)
+        }
+        components += component.result().toIndexedSeq
+      }
+    }
+
+    components.result()
   }
 }
