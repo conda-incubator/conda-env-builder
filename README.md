@@ -6,7 +6,7 @@
 [![License][license-badge]][license-link]
 [![Conda Version][conda-badge]][conda-anaconda-link]
 
-[codecov-badge]:       https://codecov.io/gh/conda-incubator/conda-env-builder/branch/main/graph/badge.svg
+[codecov-badge]:       https://codecov.io/gh/conda-incubator/conda-env-builder/branch/main/graph/badge.svg?token=ESLkbbdc73
 [codecov-link]:        https://codecov.io/gh/conda-incubator/conda-env-builder
 [license-badge]:       https://img.shields.io/badge/license-MIT-blue.svg
 [license-link]:        https://github.com/conda-incubator/conda-env-builder/blob/main/LICENSE
