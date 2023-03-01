@@ -1,19 +1,15 @@
 package com.github.condaincubator.condaenvbuilder.tools
 
 import cats.syntax.either._
-import com.fulcrumgenomics.commons.CommonsDef
-import com.fulcrumgenomics.commons.CommonsDef.{DirPath, FilePath, SafelyClosable}
+import com.fulcrumgenomics.commons.CommonsDef.{DirPath, SafelyClosable}
 import com.fulcrumgenomics.commons.io.Io
 import com.fulcrumgenomics.commons.util.Logger
 import com.fulcrumgenomics.sopt.{arg, clp}
-import com.github.condaincubator.condaenvbuilder.api.{CodeStep, CondaStep, Environment, PipStep, Requirement, Spec}
+import com.github.condaincubator.condaenvbuilder.CondaEnvironmentBuilderDef._
+import com.github.condaincubator.condaenvbuilder.api.CondaStep.{Channel, Platform}
+import com.github.condaincubator.condaenvbuilder.api._
 import com.github.condaincubator.condaenvbuilder.cmdline.{ClpGroups, CondaEnvironmentBuilderTool}
 import com.github.condaincubator.condaenvbuilder.io.{BuildWriter, SpecParser, SpecWriter}
-import com.github.condaincubator.condaenvbuilder.CondaEnvironmentBuilderDef._
-import com.github.condaincubator.condaenvbuilder.api.CondaStep.Channel
-import com.github.condaincubator.condaenvbuilder.api._
-import com.github.condaincubator.condaenvbuilder.cmdline.CondaEnvironmentBuilderTool
-import com.github.condaincubator.condaenvbuilder.io.BuildWriter
 import io.circe.Decoder.Result
 import io.circe.{Decoder, DecodingFailure, HCursor, yaml}
 
@@ -201,6 +197,7 @@ object Solve {
 
 private case class CondaEnvironment
 (name: String,
+ platforms: Seq[Platform],
  channels: Seq[Channel],
  conda: Seq[Requirement],
  pip: Seq[Requirement]
@@ -213,10 +210,11 @@ private object CondaEnvironment {
   def decoder: Decoder[CondaEnvironment] = new Decoder[CondaEnvironment] {
     final def apply(c: HCursor): Decoder.Result[CondaEnvironment] = {
       // Get the keys at this level
-      val keys           = c.keys.map(_.toSeq).getOrElse(Seq.empty)
-      val nameResult     = c.downField("name").as[String]
-      val channelsResult = if (keys.contains("channels")) c.downField("channels").as[Seq[String]] else Right(Seq.empty[String])
-      val dependencies   = c.downField("dependencies").values.toSeq.flatten
+      val keys            = c.keys.map(_.toSeq).getOrElse(Seq.empty)
+      val nameResult      = c.downField("name").as[String]
+      val platformsResult = if (keys.contains("platforms")) c.downField("platforms").as[Seq[String]] else Right(Seq.empty[String])
+      val channelsResult  = if (keys.contains("channels")) c.downField("channels").as[Seq[String]] else Right(Seq.empty[String])
+      val dependencies    = c.downField("dependencies").values.toSeq.flatten
       val condaResult: Result[Seq[Requirement]] = {
         val results = dependencies.filterNot(_.isObject).map(_.as[Requirement])
         results.collectFirst { case left: Left[DecodingFailure, Requirement] => left } match {
@@ -231,15 +229,17 @@ private object CondaEnvironment {
 
       for {
         name <- nameResult
+        platforms <- platformsResult
         channels <- channelsResult
         conda <- condaResult
         pip <- pipResult
       } yield {
         CondaEnvironment(
-          name     = name,
-          channels = channels,
-          conda    = conda,
-          pip      = pip
+          name      = name,
+          platforms = platforms,
+          channels  = channels,
+          conda     = conda,
+          pip       = pip
         )
       }
     }

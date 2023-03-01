@@ -1,16 +1,14 @@
 package com.github.condaincubator.condaenvbuilder.tools
 
-import java.nio.file.Files
 import com.fulcrumgenomics.commons.CommonsDef.DirPath
 import com.fulcrumgenomics.commons.io.Io
 import com.fulcrumgenomics.sopt.{arg, clp}
+import com.github.condaincubator.condaenvbuilder.CondaEnvironmentBuilderDef._
 import com.github.condaincubator.condaenvbuilder.api.{Environment, Spec}
 import com.github.condaincubator.condaenvbuilder.cmdline.{ClpGroups, CondaEnvironmentBuilderTool}
-import com.github.condaincubator.condaenvbuilder.CondaEnvironmentBuilderDef._
 import com.github.condaincubator.condaenvbuilder.io.{BuildWriter, SpecParser}
-import com.github.condaincubator.condaenvbuilder.api.Spec
-import com.github.condaincubator.condaenvbuilder.cmdline.CondaEnvironmentBuilderTool
-import com.github.condaincubator.condaenvbuilder.io.BuildWriter
+
+import java.nio.file.Files
 
 
 @clp(description =

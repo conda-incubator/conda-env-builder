@@ -14,6 +14,8 @@ class ToolsTest extends UnitSpec {
       |  defaults:
       |    steps:
       |      - conda:
+      |          platforms:
+      |            - linux-32
       |          channels:
       |            - conda-forge
       |            - bioconda
@@ -24,8 +26,6 @@ class ToolsTest extends UnitSpec {
       |            - python=3.6.10
       |            - samtools=1.10
       |            - yaml=0.1.7
-      |          platforms:
-      |            - linux-32
       |      - pip:
       |          requirements:
       |            - defopt==5.1.0
@@ -77,14 +77,14 @@ class ToolsTest extends UnitSpec {
       |    group: conda-env-builder
       |    steps:
       |    - conda:
+      |        platforms:
+      |        - linux-32
       |        channels:
       |        - conda-forge
       |        - bioconda
       |        requirements:
       |        - pybedtools=0.8.1
       |        - yaml=0.1.7
-      |        platforms:
-      |        - linux-32
       |    - pip:
       |        args: []
       |        requirements:
@@ -99,37 +99,37 @@ class ToolsTest extends UnitSpec {
       |    group: alignment
       |    steps:
       |    - conda:
+      |        platforms:
+      |        - linux-32
       |        channels:
       |        - conda-forge
       |        - bioconda
       |        requirements:
       |        - samtools=1.9
       |        - hisat2=2.2.0
-      |        platforms:
-      |        - linux-32
       |  bwa:
       |    group: alignment
       |    steps:
       |    - conda:
+      |        platforms:
+      |        - linux-32
       |        channels:
       |        - conda-forge
       |        - bioconda
       |        requirements:
       |        - samtools=1.9
       |        - bwa=0.7.17
-      |        platforms:
-      |        - linux-32
       |  samtools:
       |    group: alignment
       |    steps:
       |    - conda:
+      |        platforms:
+      |        - linux-32
       |        channels:
       |        - conda-forge
       |        - bioconda
       |        requirements:
-      |        - samtools=1.9
-      |        platforms:
-      |        - linux-32""".stripMargin
+      |        - samtools=1.9""".stripMargin
   }
 
   val tabulatedString: String = {
@@ -155,41 +155,43 @@ class ToolsTest extends UnitSpec {
       |    group: alignment
       |    steps:
       |    - conda:
+      |        platforms:
+      |        - linux-32
       |        channels:
       |        - conda-forge
       |        - bioconda
       |        requirements:
       |        - samtools=1.9
-      |        platforms:
-      |        - linux-32
       |  bwa:
       |    group: alignment
       |    steps:
       |    - conda:
+      |        platforms:
+      |        - linux-32
       |        channels:
       |        - conda-forge
       |        - bioconda
       |        requirements:
       |        - samtools=1.9
       |        - bwa=0.7.17
-      |        platforms:
-      |        - linux-32
       |  hisat2:
       |    group: alignment
       |    steps:
       |    - conda:
+      |        platforms:
+      |        - linux-32
       |        channels:
       |        - conda-forge
       |        - bioconda
       |        requirements:
       |        - samtools=1.9
       |        - hisat2=2.2.0
-      |        platforms:
-      |        - linux-32
       |  conda-env-builder:
       |    group: conda-env-builder
       |    steps:
       |    - conda:
+      |        platforms:
+      |        - linux-32
       |        channels:
       |        - conda-forge
       |        - bioconda
@@ -197,8 +199,6 @@ class ToolsTest extends UnitSpec {
       |        - pybedtools=0.8.1
       |        - yaml=0.1.7
       |        - pip==default
-      |        platforms:
-      |        - linux-32
       |    - pip:
       |        args: []
       |        requirements:
@@ -219,49 +219,49 @@ class ToolsTest extends UnitSpec {
       |    group: alignment
       |    steps:
       |    - conda:
+      |        platforms:
+      |        - linux-32
       |        channels:
       |        - conda-forge
       |        - bioconda
       |        requirements:
       |        - samtools=1.9
-      |        platforms:
-      |        - linux-32
       |  bwa:
       |    group: alignment
       |    steps:
       |    - conda:
+      |        platforms:
+      |        - linux-32
       |        channels:
       |        - conda-forge
       |        - bioconda
       |        requirements:
       |        - samtools=1.9
       |        - bwa=0.7.17
-      |        platforms:
-      |        - linux-32
       |  hisat2:
       |    group: alignment
       |    steps:
       |    - conda:
+      |        platforms:
+      |        - linux-32
       |        channels:
       |        - conda-forge
       |        - bioconda
       |        requirements:
       |        - samtools=1.9
       |        - hisat2=2.2.0
-      |        platforms:
-      |        - linux-32
       |  conda-env-builder:
       |    group: conda-env-builder
       |    steps:
       |    - conda:
+      |        platforms:
+      |        - linux-32
       |        channels:
       |        - conda-forge
       |        - bioconda
       |        requirements:
       |        - pybedtools=0.8.1
       |        - yaml=0.1.7
-      |        platforms:
-      |        - linux-32
       |    - pip:
       |        args: []
       |        requirements:
@@ -461,6 +461,8 @@ class ToolsTest extends UnitSpec {
 
       Io.readLines(bwaYamlPath).mkString("\n") shouldBe {
             """name: bwa
+          |platforms:
+          |  - linux-32
           |channels:
           |  - conda-forge
           |  - bioconda

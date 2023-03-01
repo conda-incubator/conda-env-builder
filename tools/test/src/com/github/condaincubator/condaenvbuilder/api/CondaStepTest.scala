@@ -18,20 +18,24 @@ object CondaStepTest extends UnitSpec {
     // one channel, one requirement, one platform
     (api.CondaStep(channels=Seq("some channel"), requirements=Seq("a==1").reqs, platforms=Seq("linux-32")), {
       """{
+        |  "platforms" : [
+        |    "linux-32"
+        |  ],
         |  "channels" : [
         |    "some channel"
         |  ],
         |  "requirements" : [
         |    "a==1"
-        |  ],
-        |  "platforms" : [
-        |    "linux-32"
         |  ]
         |}""".stripMargin
     }),
     // multiple channels, requirements, and platforms
     (api.CondaStep(channels=Seq("channel 1", "channel 2"), requirements=Seq("a==1", "b==2").reqs, platforms=Seq("linux-32", "win-32")), {
       """{
+        |  "platforms" : [
+        |    "linux-32",
+        |    "win-32"
+        |  ],
         |  "channels" : [
         |    "channel 1",
         |    "channel 2"
@@ -39,10 +43,6 @@ object CondaStepTest extends UnitSpec {
         |  "requirements" : [
         |    "a==1",
         |    "b==2"
-        |  ],
-        |  "platforms" : [
-        |    "linux-32",
-        |    "win-32"
         |  ]
         |}""".stripMargin
     }),

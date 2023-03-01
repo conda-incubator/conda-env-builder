@@ -1,7 +1,6 @@
 package com.github.condaincubator.condaenvbuilder.api
 
-import com.github.condaincubator.condaenvbuilder.api.CondaStep.Channel
-import com.github.condaincubator.condaenvbuilder.api.Platform.Platform
+import com.github.condaincubator.condaenvbuilder.api.CondaStep.{Channel, Platform}
 import io.circe.Decoder.Result
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder, HCursor, Json}
@@ -67,6 +66,7 @@ case class CondaStep(channels: Seq[Channel]=Seq.empty, requirements: Seq[Require
   */
 object CondaStep {
   type Channel = String
+  type Platform = String
 
   import Encoders.EncodeRequirement
 
@@ -74,9 +74,9 @@ object CondaStep {
   def encoder: Encoder[CondaStep] = new Encoder[CondaStep] {
     final def apply(step: CondaStep): Json = {
       val fields = ArrayBuffer[(String, Json)]()
+      if (step.platforms.nonEmpty) fields.append(("platforms", Json.fromValues(step.platforms.map(_.asJson))))
       fields.append(("channels", Json.fromValues(step.channels.map(_.asJson))))
       fields.append(("requirements", Json.fromValues(step.requirements.map(_.asJson))))
-      if (step.platforms.nonEmpty) fields.append(("platforms", Json.fromValues(step.platforms.map(_.asJson))))
       Json.obj(fields.toSeq:_*)
     }
   }
@@ -88,6 +88,11 @@ object CondaStep {
     final def apply(c: HCursor): Decoder.Result[CondaStep] = {
       val keys: Seq[String] = c.keys.map(_.toSeq).getOrElse(Seq.empty)
 
+      val platformResults: Result[Seq[Platform]] = {
+        if (keys.contains("platforms")) c.downField("platforms").as[Seq[Platform]]
+        else Right(Seq.empty)
+      }
+
       val channelsResults: Result[Seq[String]] = {
         if (keys.contains("channels")) c.downField("channels").as[Seq[String]]
         else Right(Seq.empty)
@@ -98,10 +103,6 @@ object CondaStep {
         else Right(Seq.empty)
       }
 
-      val platformResults: Result[Seq[Platform]] = {
-        if (keys.contains("platforms")) c.downField("platforms").as[Seq[Platform]]
-        else Right(Seq.empty)
-      }
 
       for {
         channels <- channelsResults
