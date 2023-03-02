@@ -1,15 +1,15 @@
 package com.github.condaincubator.condaenvbuilder.io
 
-import java.io.PrintWriter
-import java.nio.file.Paths
 import com.fulcrumgenomics.commons.CommonsDef.{DirPath, FilePath}
 import com.fulcrumgenomics.commons.io.Io
 import com.fulcrumgenomics.commons.util.{LazyLogging, Logger}
-import com.github.condaincubator.condaenvbuilder.cmdline.CondaEnvironmentBuilderTool
 import com.github.condaincubator.condaenvbuilder.CondaEnvironmentBuilderDef.PathToYaml
 import com.github.condaincubator.condaenvbuilder.api.CodeStep.Command
 import com.github.condaincubator.condaenvbuilder.api.{CodeStep, CondaStep, Environment, PipStep}
-import com.github.condaincubator.condaenvbuilder.api.CondaStep
+import com.github.condaincubator.condaenvbuilder.cmdline.CondaEnvironmentBuilderTool
+
+import java.io.PrintWriter
+import java.nio.file.Paths
 
 /** Companion to [[BuildWriter]].  */
 object BuildWriter {
@@ -111,6 +111,12 @@ case class BuildWriter(environment: Environment,
 
     val writer = new PrintWriter(Io.toWriter(environmentYaml))
     writer.println(f"name: ${environment.name}")
+    condaStep.foreach { step =>
+      if (step.platforms.nonEmpty) {
+        writer.println("platforms:")
+        step.platforms.foreach { platform => writer.println(f"  - $platform") }
+      }
+    }
     condaStep.foreach { step =>
       if (step.channels.nonEmpty) {
         writer.println("channels:")
