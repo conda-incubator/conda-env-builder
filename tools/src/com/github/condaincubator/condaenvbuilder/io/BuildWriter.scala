@@ -3,7 +3,7 @@ package com.github.condaincubator.condaenvbuilder.io
 import com.fulcrumgenomics.commons.CommonsDef.{DirPath, FilePath}
 import com.fulcrumgenomics.commons.io.Io
 import com.fulcrumgenomics.commons.util.{LazyLogging, Logger}
-import com.github.condaincubator.condaenvbuilder.CondaEnvironmentBuilderDef.{PathToLock, PathToYaml}
+import com.github.condaincubator.condaenvbuilder.CondaEnvironmentBuilderDef.PathToYaml
 import com.github.condaincubator.condaenvbuilder.api.CodeStep.Command
 import com.github.condaincubator.condaenvbuilder.api.CondaStep.Platform
 import com.github.condaincubator.condaenvbuilder.api.{CodeStep, CondaStep, Environment, PipStep}
@@ -20,7 +20,7 @@ trait BuildWriterConstants {
   }
 
   /** Returns the path to the environment's conda LOCK file. */
-  protected def toEnvironmentLockYaml(environment: Environment, platform: Platform, output: DirPath): PathToLock = {
+  protected def toEnvironmentLockYaml(environment: Environment, platform: Platform, output: DirPath): PathToYaml = {
     output.resolve(f"${environment.name}.${platform}.conda-lock.yml")
   }
 
@@ -45,12 +45,12 @@ trait BuildWriter extends LazyLogging {
 
   /** The path to use for the environment's conda build script */
   def condaBuildScript: FilePath
+
   /** The path to use for the environment's custom code build script */
   def codeBuildScript: FilePath
 
   /** The directory in which conda environments should be stored when created */
   def condaEnvironmentDirectory: Option[DirPath]
-
 
   /** Returns all the output files that will be written by this writer */
   def allOutputs: Iterable[FilePath] = Seq(environmentYaml, condaBuildScript, codeBuildScript)
@@ -115,8 +115,23 @@ trait BuildWriter extends LazyLogging {
     writer.close()
   }
 
+  /** Write the conda build command. */
+  protected def writeCondaBuildCommand(writer: PrintWriter): Unit
+
   /** Writes the conda build script. */
-  protected def writeCondaBuildScript(logger: Logger = this.logger): Unit
+  private def writeCondaBuildScript(logger: Logger = this.logger): Unit = {
+    logger.info(s"Writing conda build script for ${environment.name} to: $condaBuildScript")
+    val writer = new PrintWriter(Io.toWriter(condaBuildScript))
+    writer.println("#/bin/bash\n")
+    writer.println(f"# Conda build file for environment: ${environment.name}")
+    writer.println("set -xeuo pipefail\n")
+    writer.println("# Move to the scripts directory")
+    writer.println("pushd $(dirname $0)\n")
+    writer.println("# Build the conda environment")
+    this.writeCondaBuildCommand(writer=writer)
+    writer.println("popd\n")
+    writer.close()
+  }
 
   /** Writes the custom code build script. */
   protected def writeCodeBuildScript(logger: Logger = this.logger): Unit = {

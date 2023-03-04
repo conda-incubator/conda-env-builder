@@ -3,7 +3,7 @@ package com.github.condaincubator.condaenvbuilder.io
 import com.fulcrumgenomics.commons.CommonsDef.{DirPath, FilePath}
 import com.fulcrumgenomics.commons.io.Io
 import com.fulcrumgenomics.commons.util.Logger
-import com.github.condaincubator.condaenvbuilder.CondaEnvironmentBuilderDef.{PathToLock, PathToYaml}
+import com.github.condaincubator.condaenvbuilder.CondaEnvironmentBuilderDef.PathToYaml
 import com.github.condaincubator.condaenvbuilder.api.CondaStep.Platform
 import com.github.condaincubator.condaenvbuilder.api.Environment
 import com.github.condaincubator.condaenvbuilder.cmdline.CondaEnvironmentBuilderTool
@@ -32,7 +32,7 @@ object CondaLockInstallWriter extends BuildWriterConstants {
             output: DirPath,
             platform: Platform,
             environmentYaml: Option[PathToYaml] = None,
-            environmentLockYaml: Option[PathToLock] = None,
+            environmentLockYaml: Option[PathToYaml] = None,
             condaBuildScript: Option[FilePath] = None,
             codeBuildScript: Option[FilePath] = None,
             condaEnvironmentDirectory: Option[DirPath] = None): CondaLockInstallWriter = {
@@ -64,7 +64,7 @@ object CondaLockInstallWriter extends BuildWriterConstants {
 case class CondaLockInstallWriter(environment: Environment,
                                   environmentYaml: PathToYaml,
                                   platform: Platform,
-                                  environmentLockYaml: PathToLock,
+                                  environmentLockYaml: PathToYaml,
                                   condaBuildScript: FilePath,
                                   codeBuildScript: FilePath,
                                   condaEnvironmentDirectory: Option[DirPath]) extends BuildWriter {
@@ -82,16 +82,8 @@ case class CondaLockInstallWriter(environment: Environment,
     this.writeEnvironmentLock(logger=this.logger)
   }
 
-  /** Writes the conda build script. */
-  protected def writeCondaBuildScript(logger: Logger = this.logger): Unit = {
-    logger.info(s"Writing conda build script for ${environment.name} to: $condaBuildScript")
-    val writer = new PrintWriter(Io.toWriter(condaBuildScript))
-    writer.println("#/bin/bash\n")
-    writer.println(f"# Conda build file for environment: ${environment.name}")
-    writer.println("set -xeuo pipefail\n")
-    writer.println("# Move to the scripts directory")
-    writer.println("pushd $(dirname $0)\n")
-    writer.println("# Build the conda environment")
+  /** Writes the conda build command. */
+  protected def writeCondaBuildCommand(writer: PrintWriter): Unit = {
     writer.write(f"$condaLockExecutable install")
     if (CondaEnvironmentBuilderTool.UseMamba) writer.write(" --mamba")
     condaEnvironmentDirectory match {
@@ -99,8 +91,6 @@ case class CondaLockInstallWriter(environment: Environment,
       case None => writer.write(f" --name ${environment.name}")
     }
     writer.println(f" ${environmentLockYaml.toFile.getName}\n")
-    writer.println("popd\n")
-    writer.close()
   }
 
   private def writeEnvironmentLock(logger: Logger = this.logger): Unit = {

@@ -61,24 +61,13 @@ case class CondaBuildWriter(environment: Environment,
 
   private lazy val condaExecutable: String = if (CondaEnvironmentBuilderTool.UseMamba) "mamba" else "conda"
 
-  /** Writes the conda build script. */
-  protected def writeCondaBuildScript(logger: Logger = this.logger): Unit = {
-    logger.info(s"Writing conda build script for ${environment.name} to: $condaBuildScript")
-    val writer = new PrintWriter(Io.toWriter(condaBuildScript))
-    writer.println("#/bin/bash\n")
-    writer.println(f"# Conda build file for environment: ${environment.name}")
-    writer.println("set -xeuo pipefail\n")
-    writer.println("# Move to the scripts directory")
-    writer.println("pushd $(dirname $0)\n")
-    writer.println("# Build the conda environment")
+  /** Writes the conda build command. */
+  protected def writeCondaBuildCommand(writer: PrintWriter): Unit = {
     writer.write(f"$condaExecutable env create --force --verbose --quiet")
     condaEnvironmentDirectory match {
       case Some(pre) => writer.write(f" --prefix ${pre.toAbsolutePath}/${environment.name}")
       case None      => writer.write(f" --name ${environment.name}")
     }
     writer.println(f" --file ${environmentYaml.toFile.getName}\n")
-    writer.println("popd\n")
-    writer.close()
   }
-
 }
