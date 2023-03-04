@@ -4,9 +4,10 @@ import com.fulcrumgenomics.commons.CommonsDef.DirPath
 import com.fulcrumgenomics.commons.io.Io
 import com.fulcrumgenomics.sopt.{arg, clp}
 import com.github.condaincubator.condaenvbuilder.CondaEnvironmentBuilderDef._
+import com.github.condaincubator.condaenvbuilder.api.CondaStep.Platform
 import com.github.condaincubator.condaenvbuilder.api.{Environment, Spec}
 import com.github.condaincubator.condaenvbuilder.cmdline.{ClpGroups, CondaEnvironmentBuilderTool}
-import com.github.condaincubator.condaenvbuilder.io.{BuildWriter, SpecParser}
+import com.github.condaincubator.condaenvbuilder.io.{CondaBuildWriter, CondaLockInstallWriter, SpecParser}
 
 import java.nio.file.Files
 
@@ -30,7 +31,8 @@ class Assemble
   @arg(flag='f', doc="Overwrite existing files.") val overwrite: Boolean = false,
   @arg(flag='n', doc="Assemble environments with the given name(s).", minElements=0) val names: Set[String] = Set.empty,
   @arg(flag='g', doc="Assemble environments with the given group(s).", minElements=0) val groups: Set[String] = Set.empty,
-  @arg(doc="Compile the YAML configuration file before assembling.") compile: Boolean = true
+  @arg(doc="Compile the YAML configuration file before assembling.") compile: Boolean = true,
+  @arg(doc="Lock and the environment for the given platform, and use conda-lock to install the conda environment in the build script") condaLock: Option[Platform] = None
 ) extends CondaEnvironmentBuilderTool {
 
   Io.assertReadable(config)
@@ -50,7 +52,11 @@ class Assemble
 
     logger.info(f"Building ${environments.length}%,d out of ${spec.specs.length}%,d environments.")
     environments.zipWithIndex.map { case (environment, index) =>
-      val writer = BuildWriter(environment=environment, output=output, condaEnvironmentDirectory=prefix)
+      val writer = condaLock match {
+        case None =>  CondaBuildWriter(environment=environment, output=output, condaEnvironmentDirectory=prefix)
+        case Some(platform) => CondaLockInstallWriter(environment=environment, platform=platform, output=output, condaEnvironmentDirectory=prefix)
+      }
+
       if (!overwrite) {
         logger.info(f"Checking environment (${index+1}/${environments.length}): ${environment.name}")
         writer.allOutputs.foreach { path =>

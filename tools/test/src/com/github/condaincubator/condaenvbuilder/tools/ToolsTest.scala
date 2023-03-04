@@ -1,9 +1,10 @@
 package com.github.condaincubator.condaenvbuilder.tools
 
-import java.nio.file.Files
 import com.fulcrumgenomics.commons.io.Io
 import com.github.condaincubator.condaenvbuilder.cmdline.CondaEnvironmentBuilderTool
 import com.github.condaincubator.condaenvbuilder.testing.UnitSpec
+
+import java.nio.file.Files
 
 class ToolsTest extends UnitSpec {
 
@@ -432,8 +433,8 @@ class ToolsTest extends UnitSpec {
   }
 
   "Compile" should "compile a YAML configuration file" in {
-    val specPath     = makeTempFile("in.", CondaEnvironmentBuilderTool.FileExtension)
-    val compiledPath = makeTempFile("out.", CondaEnvironmentBuilderTool.FileExtension)
+    val specPath     = makeTempFile("in.", CondaEnvironmentBuilderTool.YamlFileExtension)
+    val compiledPath = makeTempFile("out.", CondaEnvironmentBuilderTool.YamlFileExtension)
 
     Io.writeLines(path=specPath, lines=Seq(specString))
 
@@ -446,7 +447,7 @@ class ToolsTest extends UnitSpec {
   Seq(true, false).foreach { compile =>
     val compileString = if (compile) "a pre-compiled" else "and compile a"
     "Assemble" should s"assemble $compileString YAML configuration file" in {
-      val compiledPath = makeTempFile("compiled.", CondaEnvironmentBuilderTool.FileExtension)
+      val compiledPath = makeTempFile("compiled.", CondaEnvironmentBuilderTool.YamlFileExtension)
       val outputDir    = Files.createTempDirectory("output")
 
       val lines = if (compile) Seq(compiledString) else Seq(specString)
@@ -455,12 +456,12 @@ class ToolsTest extends UnitSpec {
       val assemble = new Assemble(config=compiledPath, output=outputDir, compile=compile)
       assemble.execute()
 
-      val bwaYamlPath  = outputDir.resolve(s"bwa.${CondaEnvironmentBuilderTool.FileExtension}")
+      val bwaYamlPath  = outputDir.resolve(s"bwa.${CondaEnvironmentBuilderTool.YamlFileExtension}")
       val bwaCondaPath = outputDir.resolve("bwa.build-conda.sh")
       val bwaCodePath  = outputDir.resolve("bwa.build-local.sh")
 
       Io.readLines(bwaYamlPath).mkString("\n") shouldBe {
-            """name: bwa
+        """name: bwa
           |platforms:
           |  - linux-32
           |channels:
@@ -522,8 +523,8 @@ class ToolsTest extends UnitSpec {
   }
 
   "Solve" should s"solve a compiled YAML file" in {
-    val compiledPath = makeTempFile("compiled.", CondaEnvironmentBuilderTool.FileExtension)
-    val solvedPath = makeTempFile("output.", CondaEnvironmentBuilderTool.FileExtension)
+    val compiledPath = makeTempFile("compiled.", CondaEnvironmentBuilderTool.YamlFileExtension)
+    val solvedPath = makeTempFile("output.", CondaEnvironmentBuilderTool.YamlFileExtension)
 
     Io.writeLines(path=compiledPath, lines=Seq(compiledString))
 
@@ -534,8 +535,8 @@ class ToolsTest extends UnitSpec {
   }
 
   "Solve" should s"solve a compiled YAML file for a given group" in {
-    val compiledPath = makeTempFile("compiled.", CondaEnvironmentBuilderTool.FileExtension)
-    val solvedPath = makeTempFile("output.", CondaEnvironmentBuilderTool.FileExtension)
+    val compiledPath = makeTempFile("compiled.", CondaEnvironmentBuilderTool.YamlFileExtension)
+    val solvedPath = makeTempFile("output.", CondaEnvironmentBuilderTool.YamlFileExtension)
 
     Io.writeLines(path=compiledPath, lines=Seq(compiledString))
 
@@ -546,8 +547,8 @@ class ToolsTest extends UnitSpec {
   }
 
   "Tabulate" should "tabulate the input YAML file" in {
-    val specPath      = makeTempFile("in.", CondaEnvironmentBuilderTool.FileExtension)
-    val tabulatedPath = makeTempFile("out.", CondaEnvironmentBuilderTool.FileExtension)
+    val specPath      = makeTempFile("in.", CondaEnvironmentBuilderTool.YamlFileExtension)
+    val tabulatedPath = makeTempFile("out.", CondaEnvironmentBuilderTool.YamlFileExtension)
 
     Io.writeLines(path=specPath, lines=Seq(specString))
 

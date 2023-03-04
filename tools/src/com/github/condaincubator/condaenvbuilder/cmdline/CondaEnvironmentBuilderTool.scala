@@ -2,14 +2,14 @@ package com.github.condaincubator.condaenvbuilder.cmdline
 
 import com.fulcrumgenomics.commons.util.LazyLogging
 import com.fulcrumgenomics.sopt.cmdline.ValidationException
-import CondaEnvironmentBuilderMain.FailureException
+import com.github.condaincubator.condaenvbuilder.cmdline.CondaEnvironmentBuilderMain.FailureException
 
 object CondaEnvironmentBuilderTool {
   /** True to use `mamba` instead of `conda`, false otherwise. */
   var UseMamba: Boolean = false
 
   /** The file extension to use for YAML files. */
-  var FileExtension: String = "yml"
+  var YamlFileExtension: String = "yml"
 }
 
 
@@ -34,5 +34,8 @@ trait CondaEnvironmentBuilderTool extends LazyLogging {
 
   /** Returns the conda executable to use. */
   protected def condaExecutable: String = if (CondaEnvironmentBuilderTool.UseMamba) "mamba" else "conda"
+
+  /** Returns the conda-lock executable to use. */
+  protected def condaLockExecutable: String = "conda-lock"
 }
 

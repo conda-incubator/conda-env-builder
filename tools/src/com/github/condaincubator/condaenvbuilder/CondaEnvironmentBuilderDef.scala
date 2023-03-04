@@ -1,8 +1,8 @@
 package com.github.condaincubator.condaenvbuilder
 
-import java.nio.file.Path
-
 import com.fulcrumgenomics.commons.CommonsDef
+
+import java.nio.file.Path
 
 /**
   * Object that is designed to be imported with `import CondaEnvironmentBuilderDef._` in any/all classes
@@ -19,5 +19,8 @@ object CondaEnvironmentBuilderDef extends CommonsDef {
 
   /** Represents a path to a YAML file. */
   type PathToYaml = Path
+
+  /** Represents a path to a LOCK file. */
+  type PathToLock = Path
 
 }
