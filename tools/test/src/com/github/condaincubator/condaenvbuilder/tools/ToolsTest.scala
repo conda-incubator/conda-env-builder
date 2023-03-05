@@ -474,8 +474,10 @@ class ToolsTest extends UnitSpec {
       // NB: since conda-lock can be slow, only build the bwa environment when producing conda-lock output.
       val names: Set[String] = if (assembleArgs.condaLock.isEmpty) Set.empty else Set("bwa")
 
+      CondaEnvironmentBuilderTool.UseMamba = assembleArgs.condaLock.isDefined // use mamba to speed up conda-lock
       val assemble = new Assemble(config=compiledPath, output=outputDir, compile=assembleArgs.compile, condaLock=assembleArgs.condaLock, names=names)
       assemble.execute()
+      CondaEnvironmentBuilderTool.UseMamba = false // reset
 
       val bwaYamlPath  = outputDir.resolve(s"bwa.${CondaEnvironmentBuilderTool.YamlFileExtension}")
       val bwaCondaPath = outputDir.resolve("bwa.build-conda.sh")
