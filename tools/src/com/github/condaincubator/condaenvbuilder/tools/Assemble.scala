@@ -20,6 +20,7 @@ import java.nio.file.Files
     |1. the conda environment YAML to `<output>/<env-name>.yml`
     |2. the conda environment build script to `<output>/<env-name>.build-conda.sh`
     |3. the custom code build script to `<output>/<env-name>.build-local.sh`
+    |4. the conda-lock environment YAML to `<output>/<env-name>.<platform.conda-lock.yml`, if `--conda-lock=<platform>` is specified
     |
     |The directory in which conda environment(s) are created can be specified with the `--prefix` option.
     |""",

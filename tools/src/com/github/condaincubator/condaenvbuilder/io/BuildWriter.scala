@@ -21,7 +21,7 @@ trait BuildWriterConstants {
 
   /** Returns the path to the environment's conda LOCK file. */
   protected def toEnvironmentLockYaml(environment: Environment, platform: Platform, output: DirPath): PathToYaml = {
-    output.resolve(f"${environment.name}.${platform}.conda-lock.yml")
+    output.resolve(f"${environment.name}.${platform}.conda-lock.${CondaEnvironmentBuilderTool.YamlFileExtension}")
   }
 
 

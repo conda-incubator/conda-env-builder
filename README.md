@@ -50,14 +50,12 @@ Build and maintain multiple custom conda environments all in once place.
 Install with [`conda`](https://conda.io/projects/conda/en/latest/index.html): `conda install --channel conda-forge conda-env-builder`.
 
 
-
 ## Goals
 
-
-* Specify multiple environments in one place
+* Specify multiple conda environments in one place
 * Reduce duplication with cross-environment defaults and environment inheritance
-* Install `pip` packages into your conda environment, as well as custom commands
-* Produce easy scripts to build your environments
+* Produce easy scripts to build your environments (using `conda env create` or `conda-lock`)
+* Install `pip` packages into your conda environment, as well as custom commands (e.g. `git clone ... && make install`)
 
 ## Overview
 
@@ -90,7 +88,8 @@ Below we highlight a few tools that you may find useful.
 * `Assemble`: builds per-environment conda environment and custom command build scripts.
   * Builds `<env-name>.yaml` for your conda+pip environment specification YAML.
   * Builds `<env-name>.build-conda.sh` to build your conda environment.
-  * Builds `<env-name>.build-local.sh` to execute any custom commands after creating the conda envirnment.
+  * Builds `<env-name>.build-local.sh` to execute any custom commands after creating the conda environment.
+  * Builds [conda-lock](https://github.com/conda/conda-lock) environment YAML to `<output>/<env-name>.<platform.conda-lock.yml`, if `--conda-lock=<platform>` is specified
 * `Solve`: updates the configuration with a full list of packages and versions for the environment.
   * For each environment, builds it (`conda env create`), exports it (`conda env export`), and update the specification
 * `Tabulate`: writes the specification in a tabular format. 
