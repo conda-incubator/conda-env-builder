@@ -27,6 +27,7 @@ jobs:
         uses: mamba-org/provision-with-micromamba@main
         with:
           cache-downloads: true
+          channels: "conda-forge,defaults"
           environment-file: false
           environment-name: conda-env-builder-test
           extra-specs: "conda-lock=1.4.0"
