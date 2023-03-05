@@ -35,8 +35,7 @@ jobs:
             hashFiles('.github/workflows/build.environment.yml') }}
       - uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: 3.6
-          mamba-version: "*"
+          python-version: 3.10
           channels: conda-forge,defaults
           channel-priority: strict
           environment-file: .github/workflows/build.environment.yml
