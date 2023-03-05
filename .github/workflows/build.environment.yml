@@ -1,0 +1,5 @@
+name: conda-env-builder
+channels:
+  - conda-forge
+dependencies:
+  - conda-lock=1.4.0
