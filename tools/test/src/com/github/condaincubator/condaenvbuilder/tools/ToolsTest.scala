@@ -448,8 +448,8 @@ class ToolsTest extends UnitSpec {
     def testCaseName: String = {
       val builder = new StringBuilder()
       builder.append("assemble")
-      if (compile) builder.append(" a pre-compiled")
-      else builder.append(" and compile a")
+      if (compile) builder.append(" and compile a")
+      else builder.append(" a pre-compiled")
       builder.append(" YAML configuration file")
       if (condaLock.nonEmpty) builder.append(" and produce a conda-lock file")
       builder.toString
@@ -558,7 +558,6 @@ class ToolsTest extends UnitSpec {
                |""".stripMargin
           }
           val bwaCondaLockYaml = outputDir.resolve(f"bwa.$platform.conda-lock.${CondaEnvironmentBuilderTool.YamlFileExtension}")
-          println(Io.readLines(bwaCondaLockYaml).mkString("\n"))
           Io.assertReadable(bwaCondaLockYaml)
         // TODO: check that the packages in the environment YAML are found in the lock file
       }

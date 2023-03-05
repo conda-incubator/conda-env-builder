@@ -54,7 +54,7 @@ class Assemble
     logger.info(f"Building ${environments.length}%,d out of ${spec.specs.length}%,d environments.")
     environments.zipWithIndex.map { case (environment, index) =>
       val writer = condaLock match {
-        case None =>  CondaBuildWriter(environment=environment, output=output, condaEnvironmentDirectory=prefix)
+        case None           => CondaBuildWriter(environment=environment, output=output, condaEnvironmentDirectory=prefix)
         case Some(platform) => CondaLockInstallWriter(environment=environment, platform=platform, output=output, condaEnvironmentDirectory=prefix)
       }
 
