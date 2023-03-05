@@ -444,16 +444,37 @@ class ToolsTest extends UnitSpec {
     Io.readLines(path=compiledPath).mkString("\n") shouldBe compiledString
   }
 
-  Seq(true, false).foreach { compile =>
-    val compileString = if (compile) "a pre-compiled" else "and compile a"
-    "Assemble" should s"assemble $compileString YAML configuration file" in {
+  private case class AssembleArgs(compile: Boolean = false, condaLock: Option[String] = None) {
+    def testCaseName: String = {
+      val builder = new StringBuilder()
+      builder.append("assemble")
+      if (compile) builder.append(" a pre-compiled")
+      else builder.append(" and compile a")
+      builder.append(" YAML configuration file")
+      if (condaLock.nonEmpty) builder.append(" and produce a conda-lock file")
+      builder.toString
+    }
+  }
+
+  private val assembleTestCases = Seq(
+    AssembleArgs(compile=true, condaLock=None),
+    AssembleArgs(compile=true, condaLock=Some("linux-64")),
+    AssembleArgs(compile=false, condaLock=None),
+    AssembleArgs(compile=false, condaLock=Some("linux-64")),
+  )
+
+  assembleTestCases.foreach { assembleArgs =>
+    "Assemble" should assembleArgs.testCaseName in {
       val compiledPath = makeTempFile("compiled.", CondaEnvironmentBuilderTool.YamlFileExtension)
       val outputDir    = Files.createTempDirectory("output")
 
-      val lines = if (compile) Seq(compiledString) else Seq(specString)
+      val lines = if (assembleArgs.compile) Seq(compiledString) else Seq(specString)
       Io.writeLines(path=compiledPath, lines=lines)
 
-      val assemble = new Assemble(config=compiledPath, output=outputDir, compile=compile)
+      // NB: since conda-lock can be slow, only build the bwa environment when producing conda-lock output.
+      val names: Set[String] = if (assembleArgs.condaLock.isEmpty) Set.empty else Set("bwa")
+
+      val assemble = new Assemble(config=compiledPath, output=outputDir, compile=assembleArgs.compile, condaLock=assembleArgs.condaLock, names=names)
       assemble.execute()
 
       val bwaYamlPath  = outputDir.resolve(s"bwa.${CondaEnvironmentBuilderTool.YamlFileExtension}")
@@ -471,21 +492,6 @@ class ToolsTest extends UnitSpec {
           |  - samtools=1.9
           |  - bwa=0.7.17""".stripMargin
       }
-      Io.readLines(bwaCondaPath).mkString("\n") shouldBe {
-        """#/bin/bash
-          |
-          |# Conda build file for environment: bwa
-          |set -xeuo pipefail
-          |
-          |# Move to the scripts directory
-          |pushd $(dirname $0)
-          |
-          |# Build the conda environment
-          |conda env create --force --verbose --quiet --name bwa --file bwa.yml
-          |
-          |popd
-          |""".stripMargin
-      }
       Io.readLines(bwaCodePath).mkString("\n") shouldBe {
         """#/bin/bash
           |# Custom code build file for environment: bwa
@@ -495,30 +501,67 @@ class ToolsTest extends UnitSpec {
           |
           |# No custom commands""".stripMargin
       }
-
-      val condaEnvBuilderCodePath  = outputDir.resolve("conda-env-builder.build-local.sh")
-      Io.readLines(condaEnvBuilderCodePath).mkString("\n") shouldBe {
-        """#/bin/bash
-          |# Custom code build file for environment: conda-env-builder
-          |set -xeuo pipefail
-          |
-          |repo_root=${1:-"."}
-          |
-          |# Activate conda environment: conda-env-builder
-          |set +eu
-          |PS1=dummy
-          |
-          |. $(conda info --base | tail -n 1)/etc/profile.d/conda.sh
-          |conda activate conda-env-builder
-          |
-          |set -eu
-          |pushd ${repo_root}
-          |python setup.py develop
-          |popd
-          |
-          |""".stripMargin
+      assembleArgs.condaLock match {
+        case None =>
+          Io.readLines(bwaCondaPath).mkString("\n") shouldBe {
+            """#/bin/bash
+              |
+              |# Conda build file for environment: bwa
+              |set -xeuo pipefail
+              |
+              |# Move to the scripts directory
+              |pushd $(dirname $0)
+              |
+              |# Build the conda environment
+              |conda env create --force --verbose --quiet --name bwa --file bwa.yml
+              |
+              |popd
+              |""".stripMargin
+          }
+          // only when we do not use conda-lock will we have this environment built
+          val condaEnvBuilderCodePath = outputDir.resolve("conda-env-builder.build-local.sh")
+          Io.readLines(condaEnvBuilderCodePath).mkString("\n") shouldBe {
+            """#/bin/bash
+              |# Custom code build file for environment: conda-env-builder
+              |set -xeuo pipefail
+              |
+              |repo_root=${1:-"."}
+              |
+              |# Activate conda environment: conda-env-builder
+              |set +eu
+              |PS1=dummy
+              |
+              |. $(conda info --base | tail -n 1)/etc/profile.d/conda.sh
+              |conda activate conda-env-builder
+              |
+              |set -eu
+              |pushd ${repo_root}
+              |python setup.py develop
+              |popd
+              |
+              |""".stripMargin
+          }
+        case Some(platform) =>
+          Io.readLines(bwaCondaPath).mkString("\n") shouldBe {
+            f"""#/bin/bash
+               |
+               |# Conda build file for environment: bwa
+               |set -xeuo pipefail
+               |
+               |# Move to the scripts directory
+               |pushd $$(dirname $$0)
+               |
+               |# Build the conda environment
+               |conda-lock install --name bwa bwa.$platform.conda-lock.yml
+               |
+               |popd
+               |""".stripMargin
+          }
+          val bwaCondaLockYaml = outputDir.resolve(f"bwa.$platform.conda-lock.${CondaEnvironmentBuilderTool.YamlFileExtension}")
+          println(Io.readLines(bwaCondaLockYaml).mkString("\n"))
+          Io.assertReadable(bwaCondaLockYaml)
+        // TODO: check that the packages in the environment YAML are found in the lock file
       }
-
     }
   }
 

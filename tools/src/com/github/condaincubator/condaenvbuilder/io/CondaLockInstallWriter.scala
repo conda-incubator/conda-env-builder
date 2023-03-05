@@ -1,7 +1,6 @@
 package com.github.condaincubator.condaenvbuilder.io
 
 import com.fulcrumgenomics.commons.CommonsDef.{DirPath, FilePath}
-import com.fulcrumgenomics.commons.io.Io
 import com.fulcrumgenomics.commons.util.Logger
 import com.github.condaincubator.condaenvbuilder.CondaEnvironmentBuilderDef.PathToYaml
 import com.github.condaincubator.condaenvbuilder.api.CondaStep.Platform
@@ -95,7 +94,7 @@ case class CondaLockInstallWriter(environment: Environment,
 
   private def writeEnvironmentLock(logger: Logger = this.logger): Unit = {
     // Export the environment
-    logger.info(s"Locking ${environment.name} for $platform with conda-lock")
+    logger.info(s"Writing the conda-lock environment YAML for ${environment.name} to: $environmentLockYaml")
     val condaLockOptionalArgs: String = if (CondaEnvironmentBuilderTool.UseMamba) "--mamba" else ""
     Process.run(
       logger = logger,

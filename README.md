@@ -54,7 +54,7 @@ Install with [`conda`](https://conda.io/projects/conda/en/latest/index.html): `c
 
 * Specify multiple conda environments in one place
 * Reduce duplication with cross-environment defaults and environment inheritance
-* Produce easy scripts to build your environments (using `conda env create` or `conda-lock`)
+* Produce easy scripts to build your environments (using `conda env create` or `conda-lock install`)
 * Install `pip` packages into your conda environment, as well as custom commands (e.g. `git clone ... && make install`)
 
 ## Overview

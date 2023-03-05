@@ -67,7 +67,7 @@ trait BuildWriter extends LazyLogging {
 
   /** Writes the conda environment file. */
   def writeEnvironmentYaml(logger: Logger = this.logger): Unit = {
-    logger.info(s"Writing the environment YAML for ${environment.name} to: $environmentYaml")
+    logger.info(s"Writing the conda environment YAML for ${environment.name} to: $environmentYaml")
 
     val condaStep: Option[CondaStep] = environment.steps.collect { case step: CondaStep => step } match {
       case Seq() => None
