@@ -479,9 +479,11 @@ class ToolsTest extends UnitSpec {
       val names: Set[String] = if (assembleArgs.condaLock.isEmpty) Set.empty else Set("bwa")
 
       CondaEnvironmentBuilderTool.UseMamba = assembleArgs.condaLock.isDefined
+      CondaEnvironmentBuilderTool.UseMicromamba = assembleArgs.condaLock.isDefined
       val assemble = new Assemble(config=compiledPath, output=outputDir, compile=assembleArgs.compile, condaLock=assembleArgs.condaLock, names=names)
       assemble.execute()
       CondaEnvironmentBuilderTool.UseMamba = false
+      CondaEnvironmentBuilderTool.UseMicromamba = false
 
       val bwaYamlPath  = outputDir.resolve(s"bwa.${CondaEnvironmentBuilderTool.YamlFileExtension}")
       val bwaCondaPath = outputDir.resolve("bwa.build-conda.sh")
@@ -614,12 +616,12 @@ class ToolsTest extends UnitSpec {
 
     Io.writeLines(path = compiledPath, lines = Seq(compiledString))
 
-    CondaEnvironmentBuilderTool.UseMamba = true
+    CondaEnvironmentBuilderTool.UseMamba      = true
+    CondaEnvironmentBuilderTool.UseMicromamba = true
     val solve = new Solve(config = compiledPath, output = solvedPath, names = Set("bwa"), dryRun = false)
     solve.execute()
-    CondaEnvironmentBuilderTool.UseMamba = false
-
-    println(Io.readLines(path = solvedPath).mkString("\n"))
+    CondaEnvironmentBuilderTool.UseMamba      = false
+    CondaEnvironmentBuilderTool.UseMicromamba = false
 
     val solvedSpec   = SpecParser(solvedPath)
     solvedSpec.defaults.size shouldBe 0 // defaults should no longer be present

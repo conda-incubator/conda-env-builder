@@ -8,6 +8,10 @@ object CondaEnvironmentBuilderTool {
   /** True to use `mamba` instead of `conda`, false otherwise. */
   var UseMamba: Boolean = false
 
+  /** True to use `micromamba` instead of `conda` or `mamba`, false otherwise. Needed for testing in micromamba
+   * environments*/
+  var UseMicromamba: Boolean = false
+
   /** The file extension to use for YAML files. */
   var YamlFileExtension: String = "yml"
 }
@@ -33,6 +37,10 @@ trait CondaEnvironmentBuilderTool extends LazyLogging {
   def validate(test: Boolean, message: => String): Unit = if (!test) throw new ValidationException(message)
 
   /** Returns the conda executable to use. */
-  protected def condaExecutable: String = if (CondaEnvironmentBuilderTool.UseMamba) "mamba" else "conda"
+  protected def condaExecutable: String = {
+    if (CondaEnvironmentBuilderTool.UseMamba) "micromamba"
+    else if (CondaEnvironmentBuilderTool.UseMamba) "mamba"
+    else "conda"
+  }
 }
 
