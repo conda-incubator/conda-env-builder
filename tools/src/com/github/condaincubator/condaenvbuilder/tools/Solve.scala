@@ -98,7 +98,7 @@ class Solve
           logger=logger,
           f"$condaExecutable env export --prefix $condaEnvironmentPrefix $condaEnvExportArgs"
             #| """egrep -v "^prefix""""
-            #| f"""sed "s/name: null/name: ${environment.name}/""""
+            #| f"""sed "s/^name: .*/name: ${environment.name}/"""" // the name may contain an absolute path, so change it!
             #> exportedYaml.toFile
         )
 

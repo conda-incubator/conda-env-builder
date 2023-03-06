@@ -34,8 +34,5 @@ trait CondaEnvironmentBuilderTool extends LazyLogging {
 
   /** Returns the conda executable to use. */
   protected def condaExecutable: String = if (CondaEnvironmentBuilderTool.UseMamba) "mamba" else "conda"
-
-  /** Returns the conda-lock executable to use. */
-  protected def condaLockExecutable: String = "conda-lock"
 }
 
