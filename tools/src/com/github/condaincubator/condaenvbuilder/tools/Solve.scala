@@ -87,7 +87,7 @@ class Solve
         logger.info(s"Building a temporary conda environment for ${environment.name} to: $condaEnvironmentPrefix")
         Process.run(
           logger=logger,
-          f"$condaExecutable env create --verbose --quiet --prefix $condaEnvironmentPrefix --file $environmentYaml"
+          f"$condaExecutable env create --verbose --verbose --verbose --quiet --prefix $condaEnvironmentPrefix --file $environmentYaml"
         )
 
         // Export the environment
