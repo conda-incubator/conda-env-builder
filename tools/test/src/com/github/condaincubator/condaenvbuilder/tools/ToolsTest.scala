@@ -150,6 +150,7 @@ class ToolsTest extends UnitSpec {
       |        channels:
       |        - conda-forge
       |        requirements:
+      |        - python=3.11
       |        - defopt=6.4.0""".stripMargin
   }
 
@@ -632,11 +633,11 @@ class ToolsTest extends UnitSpec {
 
     Io.writeLines(path = compiledPath, lines = Seq(defoptOnlyCompiledString))
 
-    CondaEnvironmentBuilderTool.UseMamba      = true
+    //CondaEnvironmentBuilderTool.UseMamba      = true
     CondaEnvironmentBuilderTool.UseMicromamba = true
     val solve = new Solve(config = compiledPath, output = solvedPath, names = Set("defopt"), dryRun = false)
     solve.execute()
-    CondaEnvironmentBuilderTool.UseMamba      = false
+    //CondaEnvironmentBuilderTool.UseMamba      = false
     CondaEnvironmentBuilderTool.UseMicromamba = false
 
     val solvedSpec   = SpecParser(solvedPath)
