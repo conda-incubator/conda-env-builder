@@ -137,6 +137,22 @@ class ToolsTest extends UnitSpec {
       |        - samtools=1.9""".stripMargin
   }
 
+  // YAML compiled by the Compile tool
+  val defoptOnlyCompiledString: String = {
+    """name: example
+      |environments:
+      |  defopt:
+      |    group: defopt
+      |    steps:
+      |    - conda:
+      |        platforms:
+      |        - linux-64
+      |        channels:
+      |        - conda-forge
+      |        requirements:
+      |        - defopt=6.4.0""".stripMargin
+  }
+
   val tabulatedString: String = {
     """group	name	value	source
       |alignment	hisat2	samtools=1.9	conda
@@ -612,20 +628,20 @@ class ToolsTest extends UnitSpec {
 
   it should s"solve a compiled YAML file for a given environment (with mamba)" in {
     val compiledPath = makeTempFile("compiled.", "." + CondaEnvironmentBuilderTool.YamlFileExtension)
-    val solvedPath = makeTempFile("output.", "." + CondaEnvironmentBuilderTool.YamlFileExtension)
+    val solvedPath   = makeTempFile("output.", "." + CondaEnvironmentBuilderTool.YamlFileExtension)
 
-    Io.writeLines(path = compiledPath, lines = Seq(compiledString))
+    Io.writeLines(path = compiledPath, lines = Seq(defoptOnlyCompiledString))
 
     CondaEnvironmentBuilderTool.UseMamba      = true
     CondaEnvironmentBuilderTool.UseMicromamba = true
-    val solve = new Solve(config = compiledPath, output = solvedPath, names = Set("bwa"), dryRun = false)
+    val solve = new Solve(config = compiledPath, output = solvedPath, names = Set("defopt"), dryRun = false)
     solve.execute()
     CondaEnvironmentBuilderTool.UseMamba      = false
     CondaEnvironmentBuilderTool.UseMicromamba = false
 
     val solvedSpec   = SpecParser(solvedPath)
     solvedSpec.defaults.size shouldBe 0 // defaults should no longer be present
-    solvedSpec.specs.foreach(_.inherits.length shouldBe 0) // inheritence should no longer be present
+    solvedSpec.specs.foreach(_.inherits.length shouldBe 0) // inheritance should no longer be present
 
     val compiledEnvironments = SpecParser(compiledPath).specs.map(_.environment).sortBy(_.name)
     val solvedEnvironments   = solvedSpec.specs.map(_.environment).sortBy(_.name)
