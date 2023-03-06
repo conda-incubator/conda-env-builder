@@ -1,14 +1,12 @@
 package com.github.condaincubator.condaenvbuilder.tools
 
 import com.fulcrumgenomics.commons.io.Io
-import com.github.condaincubator.condaenvbuilder.api.{CodeStep, CondaStep, PipStep}
+import com.github.condaincubator.condaenvbuilder.api.{CodeStep, CondaStep, PipStep, Step}
 import com.github.condaincubator.condaenvbuilder.cmdline.CondaEnvironmentBuilderTool
 import com.github.condaincubator.condaenvbuilder.io.SpecParser
 import com.github.condaincubator.condaenvbuilder.testing.UnitSpec
 
 import java.nio.file.Files
-import com.github.condaincubator.condaenvbuilder.api.Step
-
 import scala.reflect.ClassTag
 
 

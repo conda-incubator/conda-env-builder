@@ -35,5 +35,4 @@ object Process {
       throw new IllegalStateException(s"Command exited with exit code '$exitCode': $processBuilder")
     }
   }
-
 }
