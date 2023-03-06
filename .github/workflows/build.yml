@@ -36,12 +36,6 @@ jobs:
           java-version: ${{ matrix.java-version }}
       - name: Save cache
         uses: coursier/cache-action@v6.3.0
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
       - name: Unit Tests
         run: |
           git config --add user.name "Mill GithHub Actions"
