@@ -42,7 +42,7 @@ jobs:
           git config --add user.email "mill-ci@localhost"
           ./mill --jobs 2 clean
           ./mill --jobs 2 --disable-ticker -s _.compile
-          ./mill --jobs 2 --disable-ticker -s tools.test
+          ./mill --jobs 2 --disable-ticker -s tools.test.testOnly -- -l ExcludeGithubActions
           ./mill --jobs 2 --disable-ticker -s tools.scoverage.xmlReport
           ./mill --jobs 2 --disable-ticker -s tools.scoverage.htmlReport
           bash <(curl -s https://codecov.io/bash) -c -F tools -f '!*.txt'
