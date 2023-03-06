@@ -38,7 +38,7 @@ trait CondaEnvironmentBuilderTool extends LazyLogging {
 
   /** Returns the conda executable to use. */
   protected def condaExecutable: String = {
-    if (CondaEnvironmentBuilderTool.UseMamba) "micromamba"
+    if (CondaEnvironmentBuilderTool.UseMicromamba) "micromamba"
     else if (CondaEnvironmentBuilderTool.UseMamba) "mamba"
     else "conda"
   }
