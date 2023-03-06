@@ -10,10 +10,15 @@ object Process {
 
   /** Runs the given processes(es). */
   def run(logger: Logger, processBuilder: ProcessBuilder): Unit = {
+    logger.info(s"running ${processBuilder.toString}")
     val processOutput: StringBuilder = new StringBuilder()
     val (process: Option[scala.sys.process.Process], exitCode: Int, throwable: Option[Throwable]) = {
       try {
-        val _process = processBuilder.run(ProcessLogger(fn = (line: String) => processOutput.append(line + "\n")))
+        val _process = processBuilder.run(ProcessLogger(fn = (line: String) => {
+          logger.info(f"processing: $line")
+          logger.out.foreach(_.flush())
+          processOutput.append(line + "\n")
+        }))
         (Some(_process), _process.exitValue(), None)
       } catch {
         case e: InterruptedException => (None, InterruptedExitCode, Some(e))
