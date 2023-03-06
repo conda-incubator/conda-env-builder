@@ -4,9 +4,10 @@ import com.fulcrumgenomics.commons.CommonsDef.DirPath
 import com.fulcrumgenomics.commons.io.Io
 import com.fulcrumgenomics.sopt.{arg, clp}
 import com.github.condaincubator.condaenvbuilder.CondaEnvironmentBuilderDef._
+import com.github.condaincubator.condaenvbuilder.api.CondaStep.Platform
 import com.github.condaincubator.condaenvbuilder.api.{Environment, Spec}
 import com.github.condaincubator.condaenvbuilder.cmdline.{ClpGroups, CondaEnvironmentBuilderTool}
-import com.github.condaincubator.condaenvbuilder.io.{BuildWriter, SpecParser}
+import com.github.condaincubator.condaenvbuilder.io.{CondaBuildWriter, CondaLockInstallWriter, SpecParser}
 
 import java.nio.file.Files
 
@@ -19,6 +20,7 @@ import java.nio.file.Files
     |1. the conda environment YAML to `<output>/<env-name>.yml`
     |2. the conda environment build script to `<output>/<env-name>.build-conda.sh`
     |3. the custom code build script to `<output>/<env-name>.build-local.sh`
+    |4. the conda-lock environment YAML to `<output>/<env-name>.<platform.conda-lock.yml`, if `--conda-lock=<platform>` is specified
     |
     |The directory in which conda environment(s) are created can be specified with the `--prefix` option.
     |""",
@@ -30,7 +32,8 @@ class Assemble
   @arg(flag='f', doc="Overwrite existing files.") val overwrite: Boolean = false,
   @arg(flag='n', doc="Assemble environments with the given name(s).", minElements=0) val names: Set[String] = Set.empty,
   @arg(flag='g', doc="Assemble environments with the given group(s).", minElements=0) val groups: Set[String] = Set.empty,
-  @arg(doc="Compile the YAML configuration file before assembling.") compile: Boolean = true
+  @arg(doc="Compile the YAML configuration file before assembling.") compile: Boolean = true,
+  @arg(doc="Lock and the environment for the given platform, and use conda-lock to install the conda environment in the build script") condaLock: Option[Platform] = None
 ) extends CondaEnvironmentBuilderTool {
 
   Io.assertReadable(config)
@@ -50,7 +53,11 @@ class Assemble
 
     logger.info(f"Building ${environments.length}%,d out of ${spec.specs.length}%,d environments.")
     environments.zipWithIndex.map { case (environment, index) =>
-      val writer = BuildWriter(environment=environment, output=output, condaEnvironmentDirectory=prefix)
+      val writer = condaLock match {
+        case None           => CondaBuildWriter(environment=environment, output=output, condaEnvironmentDirectory=prefix)
+        case Some(platform) => CondaLockInstallWriter(environment=environment, platform=platform, output=output, condaEnvironmentDirectory=prefix)
+      }
+
       if (!overwrite) {
         logger.info(f"Checking environment (${index+1}/${environments.length}): ${environment.name}")
         writer.allOutputs.foreach { path =>

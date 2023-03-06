@@ -3,17 +3,17 @@ package com.github.condaincubator.condaenvbuilder.tools
 import cats.syntax.either._
 import com.fulcrumgenomics.commons.CommonsDef.{DirPath, SafelyClosable}
 import com.fulcrumgenomics.commons.io.Io
-import com.fulcrumgenomics.commons.util.Logger
 import com.fulcrumgenomics.sopt.{arg, clp}
 import com.github.condaincubator.condaenvbuilder.CondaEnvironmentBuilderDef._
 import com.github.condaincubator.condaenvbuilder.api.CondaStep.{Channel, Platform}
 import com.github.condaincubator.condaenvbuilder.api._
 import com.github.condaincubator.condaenvbuilder.cmdline.{ClpGroups, CondaEnvironmentBuilderTool}
-import com.github.condaincubator.condaenvbuilder.io.{BuildWriter, SpecParser, SpecWriter}
+import com.github.condaincubator.condaenvbuilder.io.{CondaBuildWriter, SpecParser, SpecWriter}
+import com.github.condaincubator.condaenvbuilder.util.Process
 import io.circe.Decoder.Result
 import io.circe.{Decoder, DecodingFailure, HCursor, yaml}
 
-import scala.sys.process.{ProcessBuilder, ProcessLogger, _}
+import scala.sys.process._
 
 @clp(description =
   """
@@ -38,7 +38,6 @@ class Solve
   @arg(doc="Remove build specification from dependencies (i.e. use `conda env export --no-builds`)") noBuilds: Boolean = false,
   private[tools] val dryRun: Boolean = false // for testing
 ) extends CondaEnvironmentBuilderTool {
-  import Solve._
 
   Io.assertReadable(config)
   Io.assertCanWriteFile(output)
@@ -72,8 +71,8 @@ class Solve
 
       // Set up where files and conda environments will get written
       val condaEnvironmentPrefix: DirPath = condaEnvironmentDir.resolve(environment.name)
-      val environmentYaml: PathToYaml     = Io.makeTempFile("config.", f".${environment.name}.${CondaEnvironmentBuilderTool.FileExtension}")
-      val writer                          = BuildWriter(
+      val environmentYaml: PathToYaml     = Io.makeTempFile("config.", f".${environment.name}.${CondaEnvironmentBuilderTool.YamlFileExtension}")
+      val writer                          = CondaBuildWriter(
         environment               = environment,
         output                    = assemblyOutputDir,
         environmentYaml           = Some(environmentYaml),
@@ -86,26 +85,26 @@ class Solve
       val exportedYaml: PathToYaml = if (dryRun) writer.environmentYaml else {
         // Build the environment
         logger.info(s"Building a temporary conda environment for ${environment.name} to: $condaEnvironmentPrefix")
-        run(
+        Process.run(
           logger=logger,
-          f"$condaExecutable env create --verbose --quiet --prefix $condaEnvironmentPrefix --file $environmentYaml"
+          f"$condaExecutable env create --verbose --verbose --verbose --quiet --prefix $condaEnvironmentPrefix --file $environmentYaml"
         )
 
         // Export the environment
         logger.info(s"Exporting the conda environment for ${environment.name}")
-        val exportedYaml: PathToYaml     = Io.makeTempFile("config.", f".${environment.name}.${CondaEnvironmentBuilderTool.FileExtension}")
+        val exportedYaml: PathToYaml     = Io.makeTempFile("config.", f".${environment.name}.${CondaEnvironmentBuilderTool.YamlFileExtension}")
         val condaEnvExportArgs: String = if (noBuilds) "--no-builds" else ""
-        run(
+        Process.run(
           logger=logger,
           f"$condaExecutable env export --prefix $condaEnvironmentPrefix $condaEnvExportArgs"
             #| """egrep -v "^prefix""""
-            #| f"""sed "s/name: null/name: ${environment.name}/""""
+            #| f"""sed "s/^name: .*/name: ${environment.name}/"""" // the name may contain an absolute path, so change it!
             #> exportedYaml.toFile
         )
 
         // Remove the temporary environment
         logger.info(s"Removing the temporary the conda environment for ${environment.name}")
-        run(logger=logger, s"rm -rv $condaEnvironmentPrefix")
+        Process.run(logger=logger, s"rm -rv $condaEnvironmentPrefix")
 
         exportedYaml
       }
@@ -159,39 +158,6 @@ class Solve
     }
     val newSpec = spec.copy(specs=newSpecs)
     SpecWriter.write(spec=newSpec, config=output)
-  }
-}
-
-object Solve {
-  /** The exit code of any interrupted execution of a task. */
-  private val InterruptedExitCode = 255
-
-  private def run(logger: Logger, processBuilder: ProcessBuilder): Unit = {
-    val processOutput: StringBuilder = new StringBuilder()
-    val (process: Option[scala.sys.process.Process], exitCode: Int, throwable: Option[Throwable]) = {
-      try {
-        //logger.info(s"Executing: $command")
-        val _process = processBuilder.run(ProcessLogger(fn=(line: String) => processOutput.append(line + "\n")))
-        (Some(_process), _process.exitValue(), None)
-      } catch {
-        case e: InterruptedException => (None, InterruptedExitCode, Some(e))
-        case t: Throwable => (None, 1, Some(t))
-      }
-    }
-
-    // destroy the process regardless
-    process.foreach(p => p.destroy())
-
-    // throw the exception if something happened
-    throwable.foreach { thr =>
-      logger.error(processOutput)
-      throw thr
-    }
-
-    if (exitCode != 0) {
-      logger.error(processOutput)
-      throw new IllegalStateException(s"Command exited with exit code '$exitCode': $processBuilder")
-    }
   }
 }
 

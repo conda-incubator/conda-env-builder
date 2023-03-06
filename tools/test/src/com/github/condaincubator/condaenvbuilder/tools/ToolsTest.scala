@@ -1,9 +1,14 @@
 package com.github.condaincubator.condaenvbuilder.tools
 
-import java.nio.file.Files
 import com.fulcrumgenomics.commons.io.Io
+import com.github.condaincubator.condaenvbuilder.api.{CodeStep, CondaStep, PipStep, Step}
 import com.github.condaincubator.condaenvbuilder.cmdline.CondaEnvironmentBuilderTool
+import com.github.condaincubator.condaenvbuilder.io.SpecParser
 import com.github.condaincubator.condaenvbuilder.testing.UnitSpec
+
+import java.nio.file.Files
+import scala.reflect.ClassTag
+
 
 class ToolsTest extends UnitSpec {
 
@@ -432,8 +437,8 @@ class ToolsTest extends UnitSpec {
   }
 
   "Compile" should "compile a YAML configuration file" in {
-    val specPath     = makeTempFile("in.", CondaEnvironmentBuilderTool.FileExtension)
-    val compiledPath = makeTempFile("out.", CondaEnvironmentBuilderTool.FileExtension)
+    val specPath     = makeTempFile("in.", "." + CondaEnvironmentBuilderTool.YamlFileExtension)
+    val compiledPath = makeTempFile("out.", "." + CondaEnvironmentBuilderTool.YamlFileExtension)
 
     Io.writeLines(path=specPath, lines=Seq(specString))
 
@@ -443,24 +448,49 @@ class ToolsTest extends UnitSpec {
     Io.readLines(path=compiledPath).mkString("\n") shouldBe compiledString
   }
 
-  Seq(true, false).foreach { compile =>
-    val compileString = if (compile) "a pre-compiled" else "and compile a"
-    "Assemble" should s"assemble $compileString YAML configuration file" in {
-      val compiledPath = makeTempFile("compiled.", CondaEnvironmentBuilderTool.FileExtension)
+  private case class AssembleArgs(compile: Boolean = false, condaLock: Option[String] = None) {
+    def testCaseName: String = {
+      val builder = new StringBuilder()
+      builder.append("assemble")
+      if (compile) builder.append(" and compile a")
+      else builder.append(" a pre-compiled")
+      builder.append(" YAML configuration file")
+      if (condaLock.nonEmpty) builder.append(" and produce a conda-lock file")
+      builder.toString
+    }
+  }
+
+  private val assembleTestCases = Seq(
+    AssembleArgs(compile=true, condaLock=None),
+    AssembleArgs(compile=true, condaLock=Some("linux-64")),
+    AssembleArgs(compile=false, condaLock=None),
+    AssembleArgs(compile=false, condaLock=Some("linux-64")),
+  )
+
+  assembleTestCases.foreach { assembleArgs =>
+    "Assemble" should assembleArgs.testCaseName in {
+      val compiledPath = makeTempFile("compiled.", "." + CondaEnvironmentBuilderTool.YamlFileExtension)
       val outputDir    = Files.createTempDirectory("output")
 
-      val lines = if (compile) Seq(compiledString) else Seq(specString)
+      val lines = if (assembleArgs.compile) Seq(compiledString) else Seq(specString)
       Io.writeLines(path=compiledPath, lines=lines)
 
-      val assemble = new Assemble(config=compiledPath, output=outputDir, compile=compile)
-      assemble.execute()
+      // NB: since conda-lock can be slow, only build the bwa environment when producing conda-lock output.
+      val names: Set[String] = if (assembleArgs.condaLock.isEmpty) Set.empty else Set("bwa")
 
-      val bwaYamlPath  = outputDir.resolve(s"bwa.${CondaEnvironmentBuilderTool.FileExtension}")
+      CondaEnvironmentBuilderTool.UseMamba = assembleArgs.condaLock.isDefined
+      CondaEnvironmentBuilderTool.UseMicromamba = assembleArgs.condaLock.isDefined
+      val assemble = new Assemble(config=compiledPath, output=outputDir, compile=assembleArgs.compile, condaLock=assembleArgs.condaLock, names=names)
+      assemble.execute()
+      CondaEnvironmentBuilderTool.UseMamba = false
+      CondaEnvironmentBuilderTool.UseMicromamba = false
+
+      val bwaYamlPath  = outputDir.resolve(s"bwa.${CondaEnvironmentBuilderTool.YamlFileExtension}")
       val bwaCondaPath = outputDir.resolve("bwa.build-conda.sh")
       val bwaCodePath  = outputDir.resolve("bwa.build-local.sh")
 
       Io.readLines(bwaYamlPath).mkString("\n") shouldBe {
-            """name: bwa
+        """name: bwa
           |platforms:
           |  - linux-32
           |channels:
@@ -469,21 +499,6 @@ class ToolsTest extends UnitSpec {
           |dependencies:
           |  - samtools=1.9
           |  - bwa=0.7.17""".stripMargin
-      }
-      Io.readLines(bwaCondaPath).mkString("\n") shouldBe {
-        """#/bin/bash
-          |
-          |# Conda build file for environment: bwa
-          |set -xeuo pipefail
-          |
-          |# Move to the scripts directory
-          |pushd $(dirname $0)
-          |
-          |# Build the conda environment
-          |conda env create --force --verbose --quiet --name bwa --file bwa.yml
-          |
-          |popd
-          |""".stripMargin
       }
       Io.readLines(bwaCodePath).mkString("\n") shouldBe {
         """#/bin/bash
@@ -494,36 +509,72 @@ class ToolsTest extends UnitSpec {
           |
           |# No custom commands""".stripMargin
       }
-
-      val condaEnvBuilderCodePath  = outputDir.resolve("conda-env-builder.build-local.sh")
-      Io.readLines(condaEnvBuilderCodePath).mkString("\n") shouldBe {
-        """#/bin/bash
-          |# Custom code build file for environment: conda-env-builder
-          |set -xeuo pipefail
-          |
-          |repo_root=${1:-"."}
-          |
-          |# Activate conda environment: conda-env-builder
-          |set +eu
-          |PS1=dummy
-          |
-          |. $(conda info --base | tail -n 1)/etc/profile.d/conda.sh
-          |conda activate conda-env-builder
-          |
-          |set -eu
-          |pushd ${repo_root}
-          |python setup.py develop
-          |popd
-          |
-          |""".stripMargin
+      assembleArgs.condaLock match {
+        case None =>
+          Io.readLines(bwaCondaPath).mkString("\n") shouldBe {
+            """#/bin/bash
+              |
+              |# Conda build file for environment: bwa
+              |set -xeuo pipefail
+              |
+              |# Move to the scripts directory
+              |pushd $(dirname $0)
+              |
+              |# Build the conda environment
+              |conda env create --force --verbose --quiet --name bwa --file bwa.yml
+              |
+              |popd
+              |""".stripMargin
+          }
+          // only when we do not use conda-lock will we have this environment built
+          val condaEnvBuilderCodePath = outputDir.resolve("conda-env-builder.build-local.sh")
+          Io.readLines(condaEnvBuilderCodePath).mkString("\n") shouldBe {
+            """#/bin/bash
+              |# Custom code build file for environment: conda-env-builder
+              |set -xeuo pipefail
+              |
+              |repo_root=${1:-"."}
+              |
+              |# Activate conda environment: conda-env-builder
+              |set +eu
+              |PS1=dummy
+              |
+              |. $(conda info --base | tail -n 1)/etc/profile.d/conda.sh
+              |conda activate conda-env-builder
+              |
+              |set -eu
+              |pushd ${repo_root}
+              |python setup.py develop
+              |popd
+              |
+              |""".stripMargin
+          }
+        case Some(platform) =>
+          Io.readLines(bwaCondaPath).mkString("\n") shouldBe {
+            f"""#/bin/bash
+               |
+               |# Conda build file for environment: bwa
+               |set -xeuo pipefail
+               |
+               |# Move to the scripts directory
+               |pushd $$(dirname $$0)
+               |
+               |# Build the conda environment
+               |conda-lock install --mamba --name bwa bwa.$platform.conda-lock.yml
+               |
+               |popd
+               |""".stripMargin
+          }
+          val bwaCondaLockYaml = outputDir.resolve(f"bwa.$platform.conda-lock.${CondaEnvironmentBuilderTool.YamlFileExtension}")
+          Io.assertReadable(bwaCondaLockYaml)
+        // TODO: check that the packages in the environment YAML are found in the lock file
       }
-
     }
   }
 
-  "Solve" should s"solve a compiled YAML file" in {
-    val compiledPath = makeTempFile("compiled.", CondaEnvironmentBuilderTool.FileExtension)
-    val solvedPath = makeTempFile("output.", CondaEnvironmentBuilderTool.FileExtension)
+  "Solve" should "solve a compiled YAML file (dry-run)" in {
+    val compiledPath = makeTempFile("compiled.", "." + CondaEnvironmentBuilderTool.YamlFileExtension)
+    val solvedPath = makeTempFile("output.", "." + CondaEnvironmentBuilderTool.YamlFileExtension)
 
     Io.writeLines(path=compiledPath, lines=Seq(compiledString))
 
@@ -533,9 +584,9 @@ class ToolsTest extends UnitSpec {
     Io.readLines(path=solvedPath).mkString("\n") shouldBe compiledReformatted // since we skipped the internal solving step
   }
 
-  "Solve" should s"solve a compiled YAML file for a given group" in {
-    val compiledPath = makeTempFile("compiled.", CondaEnvironmentBuilderTool.FileExtension)
-    val solvedPath = makeTempFile("output.", CondaEnvironmentBuilderTool.FileExtension)
+  it should "solve a compiled YAML file for a given group (dry-run)" in {
+    val compiledPath = makeTempFile("compiled.", "." + CondaEnvironmentBuilderTool.YamlFileExtension)
+    val solvedPath = makeTempFile("output.", "." + CondaEnvironmentBuilderTool.YamlFileExtension)
 
     Io.writeLines(path=compiledPath, lines=Seq(compiledString))
 
@@ -545,9 +596,88 @@ class ToolsTest extends UnitSpec {
     Io.readLines(path=solvedPath).mkString("\n") shouldBe compiledReformattedAlignmentOnly // since we skipped the internal solving step
   }
 
+  private def checkSteps[T<:Step](solvedSteps: Seq[Step],
+                                  compiledSteps: Seq[Step],
+                                  checkFunc: (T, T) => Unit)
+                                 (implicit tag: ClassTag[T]): Unit = {
+    val solvedTSteps = solvedSteps.collect { case step: T => step }
+    val compiledTSteps = compiledSteps.collect { case step: T => step }
+    solvedTSteps.length shouldBe compiledTSteps.length
+    solvedTSteps.length should be <= 1
+    (solvedTSteps.headOption, compiledTSteps.headOption) match {
+      case (Some(solvedConda), Some(compiledConda)) => checkFunc(solvedConda, compiledConda)
+      case _ => ()
+    }
+  }
+
+  it should s"solve a compiled YAML file for a given environment (with mamba)" taggedAs org.scalatest.Tag("ExcludeGithubActions") in {
+    val compiledPath = makeTempFile("compiled.", "." + CondaEnvironmentBuilderTool.YamlFileExtension)
+    val solvedPath   = makeTempFile("output.", "." + CondaEnvironmentBuilderTool.YamlFileExtension)
+
+    Io.writeLines(path = compiledPath, lines = Seq(compiledString))
+
+    //CondaEnvironmentBuilderTool.UseMamba = true
+    val solve = new Solve(config = compiledPath, output = solvedPath, names = Set("bwa"), dryRun = false)
+    solve.execute()
+    //CondaEnvironmentBuilderTool.UseMamba = false
+
+    val solvedSpec   = SpecParser(solvedPath)
+    solvedSpec.defaults.size shouldBe 0 // defaults should no longer be present
+    solvedSpec.specs.foreach(_.inherits.length shouldBe 0) // inheritance should no longer be present
+
+    val compiledEnvironments = SpecParser(compiledPath).specs.map(_.environment).sortBy(_.name)
+    val solvedEnvironments   = solvedSpec.specs.map(_.environment).sortBy(_.name)
+
+    solvedEnvironments.length shouldBe compiledEnvironments.length
+    solvedEnvironments.zip(compiledEnvironments).foreach { case (solvedEnvironment, compiledEnvironment) =>
+      solvedEnvironment.name shouldBe compiledEnvironment.name
+      solvedEnvironment.group shouldBe compiledEnvironment.group
+      solvedEnvironment.steps.length shouldBe compiledEnvironment.steps.length
+
+      // Check the conda steps
+      checkSteps[CondaStep](
+        solvedSteps = solvedEnvironment.steps,
+        compiledSteps = compiledEnvironment.steps,
+        checkFunc = (solvedConda, compiledConda) => {
+          solvedConda.channels should contain theSameElementsInOrderAs compiledConda.channels
+          solvedConda.platforms should contain theSameElementsInOrderAs compiledConda.platforms
+          compiledConda.requirements.foreach { compiledRequirement =>
+            solvedConda.requirements.exists {
+              _.name == compiledRequirement.name
+            }
+          }
+        }
+      )
+
+      // Check the pip steps
+      checkSteps[PipStep](
+        solvedSteps = solvedEnvironment.steps,
+        compiledSteps = compiledEnvironment.steps,
+        checkFunc = (solvedPip, compiledPip) => {
+          solvedPip.args should contain theSameElementsInOrderAs compiledPip.args
+          compiledPip.requirements.foreach { compiledRequirement =>
+            solvedPip.requirements.exists {
+              _.name == compiledRequirement.name
+            }
+          }
+        }
+      )
+
+      // Check the code steps
+      checkSteps[CodeStep](
+        solvedSteps = solvedEnvironment.steps,
+        compiledSteps = compiledEnvironment.steps,
+        checkFunc = (solvedCode, compiledCode) => {
+          solvedCode.path shouldBe compiledCode.path
+          solvedCode.commands should contain theSameElementsInOrderAs compiledCode.commands
+        }
+      )
+    }
+  }
+
   "Tabulate" should "tabulate the input YAML file" in {
-    val specPath      = makeTempFile("in.", CondaEnvironmentBuilderTool.FileExtension)
-    val tabulatedPath = makeTempFile("out.", CondaEnvironmentBuilderTool.FileExtension)
+    val specPath      = makeTempFile("in.", "." + CondaEnvironmentBuilderTool.YamlFileExtension)
+    val tabulatedPath = makeTempFile("out.", "." + CondaEnvironmentBuilderTool.YamlFileExtension)
 
     Io.writeLines(path=specPath, lines=Seq(specString))
 

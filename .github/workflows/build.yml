@@ -16,10 +16,21 @@ jobs:
       matrix:
         java-version: [8, 11]
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          cache-downloads: true
+          channels: "conda-forge,defaults"
+          environment-file: false
+          environment-name: conda-env-builder-test
+          extra-specs: "conda-lock=1.4.0"
       - uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java-version }}
@@ -31,7 +42,7 @@ jobs:
           git config --add user.email "mill-ci@localhost"
           ./mill --jobs 2 clean
           ./mill --jobs 2 --disable-ticker -s _.compile
-          ./mill --jobs 2 --disable-ticker -s tools.test
+          ./mill --jobs 2 --disable-ticker -s tools.test.testOnly -- -l ExcludeGithubActions
           ./mill --jobs 2 --disable-ticker -s tools.scoverage.xmlReport
           ./mill --jobs 2 --disable-ticker -s tools.scoverage.htmlReport
           bash <(curl -s https://codecov.io/bash) -c -F tools -f '!*.txt'

@@ -39,7 +39,7 @@ class CondaEnvironmentBuilderCommonArgs
 
   Logger.level = this.logLevel
   CondaEnvironmentBuilderTool.UseMamba = mamba
-  CondaEnvironmentBuilderTool.FileExtension = extension
+  CondaEnvironmentBuilderTool.YamlFileExtension = extension
 }
 
 class CondaEnvironmentBuilderMain extends LazyLogging {
